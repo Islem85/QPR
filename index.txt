@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QPR Platform — Project Progress Report</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --green-900:#04342C;--green-800:#085041;--green-700:#0F6E56;--green-600:#1D9E75;
+  --green-400:#5DCAA5;--green-200:#9FE1CB;--green-100:#C8F0E2;--green-50:#E8F9F3;
+  --amber-700:#9A6010;--amber-600:#BA7517;--amber-100:#FAEEDA;--amber-50:#FDF6E8;
+  --red-600:#A32D2D;--red-100:#FCEBEB;--red-50:#FEF5F5;
+  --blue-700:#1D4E8F;--blue-100:#DDEAFB;
+  --gray-900:#1A1A18;--gray-700:#3D3D3A;--gray-500:#73726C;
+  --gray-300:#C4C2B8;--gray-200:#DDD9CE;--gray-100:#F0EEE8;--gray-50:#F8F7F4;
+  --white:#FFFFFF;
+  --font-d:'DM Serif Display',Georgia,serif;
+  --font-b:'DM Sans',system-ui,sans-serif;
+  --r-sm:6px;--r-md:10px;--r-lg:16px;--r-xl:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-b);font-size:14px;color:var(--gray-700);background:var(--gray-50);line-height:1.6}
+.lang-toggle{display:flex;border:1.5px solid var(--gray-200);border-radius:20px;overflow:hidden;background:var(--white);}
+.lang-btn{padding:5px 14px;font-size:11px;font-weight:500;border:none;background:none;cursor:pointer;font-family:var(--font-b);color:var(--gray-500);transition:all .2s;letter-spacing:.04em;}
+.lang-btn.active{background:var(--green-700);color:white;}
+
+/* LOOKUP */
+#screen-lookup{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--gray-50);padding:24px;}
+.lookup-card{background:var(--white);border:1px solid var(--gray-100);border-radius:var(--r-xl);padding:48px 52px;width:540px;box-shadow:0 8px 40px rgba(0,0,0,.10);}
+.lookup-logo{display:flex;align-items:center;gap:10px;}
+.lookup-logo-icon{width:40px;height:40px;background:var(--green-700);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;}
+.lookup-brand{font-family:var(--font-d);font-size:18px;color:var(--gray-900)}
+.lookup-brand-sub{font-size:11px;color:var(--gray-500);margin-top:1px}
+.lookup-title{font-family:var(--font-d);font-size:26px;color:var(--gray-900);line-height:1.25;margin-top:32px;margin-bottom:8px;}
+.lookup-sub{font-size:13px;color:var(--gray-500);margin-bottom:28px;line-height:1.65}
+#code-input{width:100%;padding:14px 16px;border:1.5px solid var(--gray-300);border-radius:var(--r-md);font-size:16px;font-family:var(--font-b);color:var(--gray-900);letter-spacing:.06em;text-transform:uppercase;transition:all .2s;background:var(--white);margin-bottom:10px;}
+#code-input:focus{outline:none;border-color:var(--green-600);box-shadow:0 0 0 4px rgba(29,158,117,.1)}
+#code-input.found{border-color:var(--green-600);background:var(--green-50);color:var(--green-800)}
+#code-input.not-found{border-color:var(--red-600);background:var(--red-50)}
+.lookup-hint{font-size:12px;color:var(--gray-500);margin-bottom:20px}
+.lookup-hint span{color:var(--green-700);cursor:pointer;font-weight:500}
+.lookup-hint span:hover{text-decoration:underline}
+.btn-lookup{width:100%;padding:14px;background:var(--green-700);border:none;border-radius:var(--r-md);font-size:14px;font-weight:500;color:var(--white);cursor:pointer;font-family:var(--font-b);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-lookup:hover:not(:disabled){background:var(--green-800);transform:translateY(-1px)}
+.btn-lookup:disabled{background:var(--gray-300);cursor:not-allowed}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+#project-preview{margin-top:20px;border:1px solid var(--green-200);border-radius:var(--r-md);background:var(--green-50);padding:16px;display:none;animation:slideDown .25s ease;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.preview-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.preview-check{width:22px;height:22px;background:var(--green-600);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.preview-project-name{font-size:13px;font-weight:500;color:var(--green-800)}
+.preview-code{font-size:11px;color:var(--green-600)}
+.preview-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.preview-field{background:white;border-radius:var(--r-sm);padding:8px 10px}
+.preview-field-label{font-size:10px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em}
+.preview-field-val{font-size:12px;font-weight:500;color:var(--gray-900);margin-top:2px}
+.btn-continue{width:100%;margin-top:14px;padding:12px;background:var(--green-700);border:none;border-radius:var(--r-md);font-size:13px;font-weight:500;color:white;cursor:pointer;font-family:var(--font-b);transition:background .15s;}
+.btn-continue:hover{background:var(--green-800)}
+.error-msg{font-size:12px;color:var(--red-600);margin-top:8px;display:none;padding:10px 12px;background:var(--red-100);border-radius:var(--r-sm);}
+.recent-codes{margin-top:24px}
+.recent-title{font-size:11px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.recent-list{display:flex;flex-wrap:wrap;gap:6px}
+.recent-chip{font-size:11px;padding:4px 10px;background:var(--gray-100);border-radius:20px;cursor:pointer;color:var(--gray-700);transition:all .15s;border:none;font-family:var(--font-b);}
+.recent-chip:hover{background:var(--green-100);color:var(--green-800)}
+
+/* FORM */
+#screen-form{display:none}
+.app{display:flex;min-height:100vh}
+.sidebar{width:260px;flex-shrink:0;background:var(--green-900);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar-brand{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.brand-icon{width:32px;height:32px;background:var(--green-600);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;}
+.brand-name{font-family:var(--font-d);font-size:16px;color:white}
+.brand-sub{font-size:10px;color:var(--green-200);letter-spacing:.05em;text-transform:uppercase}
+.proj-badge{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-md);padding:10px 12px;}
+.proj-code{font-size:10px;color:var(--green-400);letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.proj-name{font-size:11px;color:white;font-weight:500;line-height:1.4}
+.sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto;}
+.nav-sec-title{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:0 10px;margin:12px 0 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:var(--r-sm);cursor:pointer;color:rgba(255,255,255,.5);font-size:11.5px;border:none;background:none;width:100%;text-align:left;transition:all .15s;}
+.nav-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--green-700);color:white;font-weight:500}
+.nav-num{width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);}
+.nav-item.active .nav-num{background:var(--green-400);color:var(--green-900)}
+.sidebar-footer{padding:12px;border-top:1px solid rgba(255,255,255,.08);}
+.sap-indicator{display:flex;align-items:center;gap:7px;padding:7px 9px;background:rgba(29,158,117,.15);border:1px solid rgba(29,158,117,.25);border-radius:var(--r-sm);font-size:11px;color:var(--green-200);margin-bottom:10px;}
+.sap-dot{width:6px;height:6px;border-radius:50%;background:var(--green-400);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-change-project{display:flex;align-items:center;gap:6px;padding:7px 9px;background:none;border:1px solid rgba(255,255,255,.1);border-radius:var(--r-sm);color:rgba(255,255,255,.4);font-size:11px;cursor:pointer;font-family:var(--font-b);width:100%;transition:all .15s;}
+.btn-change-project:hover{border-color:rgba(255,255,255,.25);color:rgba(255,255,255,.7)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{background:white;border-bottom:1px solid var(--gray-100);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.topbar-left{display:flex;align-items:center;gap:14px}
+.topbar-title{font-family:var(--font-d);font-size:18px;color:var(--gray-900)}
+.topbar-badge{font-size:11px;background:var(--green-50);color:var(--green-700);border:1px solid var(--green-200);padding:3px 10px;border-radius:20px;font-weight:500;}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.prog-wrap{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--gray-500)}
+.prog-track{width:100px;height:3px;background:var(--gray-100);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--green-600);border-radius:2px;transition:width .4s}
+.btn-export{padding:7px 14px;background:none;border:1px solid var(--gray-300);border-radius:var(--r-sm);font-size:12px;color:#2B579A;cursor:pointer;font-family:var(--font-b);transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-export:hover{border-color:#2B579A;background:#EEF2FA;}
+.btn-draft{padding:7px 16px;background:none;border:1px solid var(--gray-300);border-radius:var(--r-sm);font-size:12px;color:var(--gray-500);cursor:pointer;font-family:var(--font-b);}
+.btn-submit-top{padding:7px 18px;background:var(--green-700);border:none;border-radius:var(--r-sm);font-size:12px;font-weight:500;color:white;cursor:pointer;font-family:var(--font-b);}
+.content{padding:24px 32px 80px}
+.section-panel{background:white;border:1px solid var(--gray-100);border-radius:var(--r-lg);margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);overflow:hidden;}
+.section-hdr{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;border-bottom:1px solid var(--gray-100);transition:background .15s;user-select:none;}
+.section-hdr:hover{background:var(--gray-50)}
+.section-hdr.collapsed{border-bottom:none}
+.sec-alpha{width:28px;height:28px;border-radius:var(--r-sm);background:var(--green-700);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sec-num{width:28px;height:28px;border-radius:var(--r-sm);background:#4A6558;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sec-title{font-family:var(--font-d);font-size:15px;color:var(--gray-900);flex:1}
+.sec-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap;}
+.sec-badge.sap{background:var(--green-50);color:var(--green-700);border:1px solid var(--green-200)}
+.sec-badge.ok{background:#EAF3DE;color:#27500A}
+.sec-badge.partial{background:var(--amber-100);color:var(--amber-700)}
+.sec-badge.empty{background:var(--gray-100);color:var(--gray-500)}
+.chevron{transition:transform .25s;color:var(--gray-300);font-size:10px;flex-shrink:0}
+.chevron.open{transform:rotate(180deg)}
+.section-body{padding:20px 24px}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.field-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.field-grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg-full{grid-column:1/-1}
+.fl{font-size:11px;font-weight:500;color:var(--gray-500);letter-spacing:.03em;text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+.fl .req{color:var(--red-600)}
+.sap-tag{font-size:9px;background:var(--green-50);color:var(--green-700);padding:1px 5px;border-radius:3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;border:1px solid var(--green-200)}
+.fi,.fsel,.fta{padding:8px 11px;border:1px solid var(--gray-300);border-radius:var(--r-sm);font-size:13px;color:var(--gray-900);background:white;font-family:var(--font-b);transition:border-color .15s;width:100%;}
+.fi:focus,.fsel:focus,.fta:focus{outline:none;border-color:var(--green-600);box-shadow:0 0 0 3px rgba(29,158,117,.1);}
+.fi.sap-fill{background:var(--green-50);border-color:var(--green-200);color:var(--green-800);font-weight:500}
+.fta{resize:vertical;min-height:90px;line-height:1.6}
+.fhint{font-size:11px;color:var(--gray-500);margin-top:2px;font-style:italic}
+.unit-wrap{display:flex}
+.unit-wrap .fi{border-radius:var(--r-sm) 0 0 var(--r-sm);border-right:none;flex:1}
+.unit-badge{padding:8px 9px;background:var(--gray-100);border:1px solid var(--gray-300);border-radius:0 var(--r-sm) var(--r-sm) 0;font-size:11px;color:var(--gray-500);white-space:nowrap;display:flex;align-items:center;}
+
+/* QUESTION BLOCK */
+.q-block{background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);padding:14px 16px;margin-bottom:14px;}
+.q-header{font-size:12px;font-weight:600;color:var(--green-800);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.q-header svg{flex-shrink:0}
+.q-bullets{list-style:none;margin-bottom:10px;}
+.q-bullets li{font-size:12px;color:var(--gray-600);padding:3px 0 3px 16px;position:relative;line-height:1.55}
+.q-bullets li::before{content:'·';position:absolute;left:4px;color:var(--green-600);font-weight:700;font-size:14px;line-height:1.3}
+.q-page-hint{font-size:10px;color:var(--gray-400);margin-bottom:8px;font-style:italic}
+
+.sub-title{font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.07em;padding:14px 0 10px;border-bottom:1px solid var(--gray-100);margin-bottom:16px;display:flex;align-items:center;gap:7px;}
+.sub-title::before{content:'';width:3px;height:13px;background:var(--green-600);border-radius:2px;flex-shrink:0;}
+.annex-ref{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--green-700);background:var(--green-50);border:1px solid var(--green-200);padding:4px 10px;border-radius:20px;margin-bottom:4px;cursor:pointer;transition:all .2s;text-decoration:none;}
+.annex-ref:hover{background:var(--green-100);border-color:var(--green-400);transform:translateY(1px);box-shadow:0 2px 8px rgba(15,110,86,.15)}
+
+/* ANNEX WIDGET */
+.annex-widget{border:1px solid var(--gray-200);border-radius:var(--r-md);overflow:hidden;margin-top:4px}
+.annex-tabs{display:flex;border-bottom:1px solid var(--gray-200);background:var(--gray-50)}
+.annex-tab{padding:9px 16px;font-size:12px;font-weight:500;color:var(--gray-500);cursor:pointer;border:none;background:none;font-family:var(--font-b);border-bottom:2px solid transparent;transition:all .15s;display:flex;align-items:center;gap:6px;}
+.annex-tab:hover{color:var(--green-700)}
+.annex-tab.active{color:var(--green-700);border-bottom-color:var(--green-600);background:white}
+.annex-panel{padding:0;display:none}
+.annex-panel.active{display:block}
+.ind-table{width:100%;border-collapse:collapse;font-size:12px}
+.ind-table th{font-size:10px;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em;padding:8px 10px;text-align:left;background:var(--gray-50);border-bottom:2px solid var(--gray-200);}
+.ind-table td{padding:7px 8px;border-bottom:1px solid var(--gray-100);vertical-align:top}
+.ind-table tr:last-child td{border-bottom:none}
+.ind-table tr:hover td{background:var(--gray-50)}
+.ind-table input,.ind-table select,.ind-table textarea{width:100%;padding:5px 7px;border:1px solid var(--gray-200);border-radius:var(--r-sm);font-size:11.5px;font-family:var(--font-b);color:var(--gray-900);background:white;transition:all .15s;}
+.ind-table input:focus,.ind-table select:focus,.ind-table textarea:focus{outline:none;border-color:var(--green-600);box-shadow:0 0 0 2px rgba(29,158,117,.1)}
+.ind-table textarea{resize:vertical;min-height:38px;line-height:1.4}
+.tbl-scroll{overflow-x:auto}
+.add-row-btn{margin:8px 14px 12px;padding:7px 14px;border:1.5px dashed var(--gray-300);border-radius:var(--r-sm);background:none;font-size:12px;color:var(--gray-500);cursor:pointer;font-family:var(--font-b);transition:all .15s}
+.add-row-btn:hover{border-color:var(--green-400);color:var(--green-700)}
+.upload-zone{border:2px dashed var(--gray-300);border-radius:var(--r-md);padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:var(--gray-50);margin:14px;}
+.upload-zone:hover{border-color:var(--green-500);background:var(--green-50);}
+.upload-icon{width:44px;height:44px;background:var(--gray-100);border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.upload-title{font-size:13px;font-weight:500;color:var(--gray-700);margin-bottom:3px}
+.upload-sub{font-size:11px;color:var(--gray-500)}
+.file-preview-wrap{margin:0 14px 12px;display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--r-sm);}
+.file-preview-icon{width:32px;height:32px;background:var(--green-700);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-preview-name{font-size:12px;font-weight:500;color:var(--green-800);flex:1}
+.file-preview-size{font-size:11px;color:var(--green-600)}
+.file-remove{padding:4px 8px;background:none;border:1px solid var(--green-300);border-radius:4px;font-size:11px;color:var(--red-600);cursor:pointer;font-family:var(--font-b);}
+
+/* FIN CARDS */
+.fin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.fin-card{background:var(--gray-50);border:1px solid var(--gray-100);border-radius:var(--r-md);padding:14px}
+.fin-lbl{font-size:10px;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.fin-amt{font-family:var(--font-d);font-size:20px;color:var(--gray-900);line-height:1}
+.fin-sub{font-size:11px;color:var(--gray-500);margin-top:3px}
+.fin-bar{height:3px;background:var(--gray-200);border-radius:2px;margin-top:8px}
+.fin-bar-fill{height:100%;border-radius:2px;background:var(--green-600);transition:width 1s}
+.fin-pct{display:flex;justify-content:space-between;margin-top:3px;font-size:10px}
+.fin-pct .v{font-weight:600;color:var(--green-700)}.fin-pct .l{color:var(--gray-400)}
+
+/* SUBMIT */
+.submit-row{background:white;border:1px solid var(--gray-100);border-radius:var(--r-lg);padding:20px;display:flex;align-items:center;gap:16px;margin-top:16px;}
+.submit-info{flex:1}
+.submit-title{font-family:var(--font-d);font-size:17px;color:var(--gray-900);margin-bottom:3px}
+.submit-sub{font-size:12px;color:var(--gray-500)}
+.btn-lg{padding:11px 18px;border-radius:var(--r-md);font-size:13px;cursor:pointer;font-family:var(--font-b);transition:all .15s;white-space:nowrap;}
+.btn-lg.outline{background:none;border:1px solid var(--gray-300);color:var(--gray-500);}
+.btn-lg.word{background:none;border:1px solid #2B579A;color:#2B579A;display:flex;align-items:center;gap:8px;}
+.btn-lg.word:hover{background:#EEF2FA}
+.btn-lg.primary{background:var(--green-700);border:none;color:white;font-weight:500;}
+.btn-lg.primary:hover{background:var(--green-800)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green-800);color:white;padding:12px 18px;border-radius:var(--r-md);font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.15);display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-icon{width:18px;height:18px;background:var(--green-400);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.annex-divider{font-family:var(--font-d);font-size:22px;color:var(--gray-900);border-bottom:2px solid var(--green-200);padding-bottom:10px;margin:32px 0 14px}
+.banner{margin:20px 32px 0;background:var(--green-50);border:1px solid var(--green-200);border-radius:var(--r-md);padding:12px 16px;display:flex;align-items:flex-start;gap:12px;font-size:12px;}
+.banner-icon{width:28px;height:28px;background:var(--green-700);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.banner-title{font-weight:600;color:var(--green-800);margin-bottom:4px}
+.banner-fields{display:flex;gap:18px;flex-wrap:wrap;margin-top:4px}
+.bf span{color:var(--green-600);font-size:11px}.bf strong{color:var(--green-800);font-size:11px;font-weight:500}
+.elapse-bar-wrap{background:var(--gray-100);border-radius:4px;height:5px;overflow:hidden;margin-top:4px}
+.elapse-bar-fill{height:100%;background:var(--green-600);border-radius:4px;transition:width .6s}
+</style>
+</head>
+<body>
+
+<!-- ══ SCREEN 1: LOOKUP ══ -->
+<div id="screen-lookup">
+<div class="lookup-card">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px">
+    <div class="lookup-logo">
+      <div class="lookup-logo-icon">
+        <svg viewBox="0 0 20 20" fill="none" width="20" height="20">
+          <rect x="2" y="2" width="7" height="7" rx="1.5" fill="white" opacity=".9"/>
+          <rect x="11" y="2" width="7" height="7" rx="1.5" fill="white" opacity=".6"/>
+          <rect x="2" y="11" width="7" height="7" rx="1.5" fill="white" opacity=".5"/>
+          <rect x="11" y="11" width="7" height="7" rx="1.5" fill="white" opacity=".3"/>
+        </svg>
+      </div>
+      <div>
+        <div class="lookup-brand">QPR Platform</div>
+        <div class="lookup-brand-sub" id="lk-sub-brand">African Development Bank</div>
+      </div>
+    </div>
+    <div class="lang-toggle">
+      <button class="lang-btn" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+  <h1 class="lookup-title" id="lk-title">New Project<br>Progress Report</h1>
+  <p class="lookup-sub" id="lk-sub">Enter the SAP project code to load reference data and open the QPR form.</p>
+  <input id="code-input" type="text" placeholder="e.g. P-MR-AAC-011" autocomplete="off"
+    oninput="onCodeInput(this.value)" onkeydown="if(event.key==='Enter')lookupProject()">
+  <p class="lookup-hint" id="lk-hint"></p>
+  <button class="btn-lookup" id="btn-lookup" onclick="lookupProject()">
+    <span id="btn-text">Load SAP Data</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+  <div class="error-msg" id="error-msg"></div>
+  <div id="project-preview">
+    <div class="preview-header">
+      <div class="preview-check"><svg viewBox="0 0 12 12" fill="none" width="10" height="10"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div><div class="preview-project-name" id="prev-name">—</div><div class="preview-code" id="prev-code">—</div></div>
+    </div>
+    <div class="preview-grid" id="prev-grid"></div>
+    <button class="btn-continue" id="btn-open-form" onclick="openForm()">Open QPR Form →</button>
+  </div>
+  <div class="recent-codes">
+    <div class="recent-title" id="lk-recent">Recent Projects</div>
+    <div class="recent-list">
+      <button class="recent-chip" onclick="fillCode('P-MR-AAC-011')">P-MR-AAC-011</button>
+      <button class="recent-chip" onclick="fillCode('P-SN-AAC-023')">P-SN-AAC-023</button>
+      <button class="recent-chip" onclick="fillCode('P-ML-AAC-007')">P-ML-AAC-007</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ══ SCREEN 2: FORM ══ -->
+<div id="screen-form">
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-row">
+        <div class="brand-icon"><svg viewBox="0 0 16 16" fill="none" width="16" height="16"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="white" opacity=".9"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="white" opacity=".6"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="white" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="white" opacity=".3"/></svg></div>
+        <div><div class="brand-name">QPR Platform</div><div class="brand-sub">BAD / AfDB</div></div>
+      </div>
+      <div class="proj-badge"><div class="proj-code" id="sb-code">—</div><div class="proj-name" id="sb-name">—</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-sec-title" id="nav-main-lbl">Main Sections</div>
+      <button class="nav-item active" onclick="navTo('sA',this)"><span class="nav-num">A</span><span id="navA">Project Background</span></button>
+      <button class="nav-item" onclick="navTo('sB',this)"><span class="nav-num">B</span><span id="navB">Procurement</span></button>
+      <button class="nav-item" onclick="navTo('sC',this)"><span class="nav-num">C</span><span id="navC">Financial Performance</span></button>
+      <button class="nav-item" onclick="navTo('sD',this)"><span class="nav-num">D</span><span id="navD">Physical Progress</span></button>
+      <button class="nav-item" onclick="navTo('sE',this)"><span class="nav-num">E</span><span id="navE">Safeguards</span></button>
+      <button class="nav-item" onclick="navTo('sF',this)"><span class="nav-num">F</span><span id="navF">Cross-Cutting</span></button>
+      <button class="nav-item" onclick="navTo('sG',this)"><span class="nav-num">G</span><span id="navG">Risks</span></button>
+      <button class="nav-item" onclick="navTo('sH',this)"><span class="nav-num">H</span><span id="navH">Key Issues</span></button>
+      <button class="nav-item" onclick="navTo('sI',this)"><span class="nav-num">I</span><span id="navI">Clearance</span></button>
+      <div class="nav-sec-title" id="nav-annex-lbl">Annexes</div>
+      <button class="nav-item" onclick="navTo('ann1',this)"><span class="nav-num" style="font-size:8px">1</span><span id="navAnn1">Covenants & Actions</span></button>
+      <button class="nav-item" onclick="navTo('ann2',this)"><span class="nav-num" style="font-size:8px">2</span><span id="navAnn2">Results Progress</span></button>
+      <button class="nav-item" onclick="navTo('ann3',this)"><span class="nav-num" style="font-size:8px">3</span><span id="navAnn3">Procurement Tables</span></button>
+      <button class="nav-item" onclick="navTo('ann4',this)"><span class="nav-num" style="font-size:8px">4</span><span id="navAnn4">Financial Tables</span></button>
+      <button class="nav-item" onclick="navTo('ann5',this)"><span class="nav-num" style="font-size:8px">5</span><span id="navAnn5">Risks & Actions</span></button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sap-indicator"><div class="sap-dot"></div><span id="sap-lbl">SAP — data loaded</span></div>
+      <button class="btn-change-project" onclick="backToLookup()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7 2L3 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="btn-change">Change project</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <span class="topbar-title" id="topbar-lbl">Project Progress Report</span>
+        <span class="topbar-badge" id="tb-rpt">—</span>
+      </div>
+      <div class="topbar-right">
+        <div class="prog-wrap"><span id="prog-label">0%</span><div class="prog-track"><div class="prog-fill" id="prog-bar" style="width:0%"></div></div></div>
+        <div class="lang-toggle">
+          <button class="lang-btn" onclick="setLang('fr')">FR</button>
+          <button class="lang-btn active" onclick="setLang('en')">EN</button>
+        </div>
+        <button class="btn-export" onclick="exportWord()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 1.5h6.5L12 5v7.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5v-11A.5.5 0 012 1.5z" stroke="#2B579A" stroke-width="1.1"/><path d="M8.5 1.5V5H12" stroke="#2B579A" stroke-width="1.1"/><path d="M4.5 8l1.5 2.5L7.5 8M9.5 8v2.5" stroke="#2B579A" stroke-width="1.1" stroke-linecap="round"/></svg>
+          <span id="btn-export-lbl">Export Word</span>
+        </button>
+        <button class="btn-draft" onclick="saveDraft()" id="btn-draft-lbl">Draft</button>
+        <button class="btn-submit-top" onclick="submitForm()" id="btn-submit-lbl">Submit →</button>
+      </div>
+    </header>
+
+    <div class="banner">
+      <div class="banner-icon"><svg viewBox="0 0 14 14" fill="none" width="14" height="14"><path d="M1 3.5h12v7A1.5 1.5 0 0111.5 12h-9A1.5 1.5 0 011 10.5v-7z" stroke="white" stroke-width="1.1"/><path d="M4.5 3.5V2A1 1 0 015.5 1h3a1 1 0 011 1v1.5" stroke="white" stroke-width="1.1"/></svg></div>
+      <div><div class="banner-title" id="banner-title">Pre-filled from SAP</div><div class="banner-fields" id="banner-fields">—</div></div>
+    </div>
+
+    <div class="content">
+
+<!-- ══════════════════════════════════
+     SECTION A
+══════════════════════════════════ -->
+<div class="section-panel" id="sA">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">A</div>
+    <div class="sec-title" id="sA-title">A – Project Background Information</div>
+    <span class="sec-badge sap">SAP</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+
+    <div class="sub-title" id="A1-title">A.1 – Basic Data</div>
+    <div class="field-grid" style="margin-bottom:16px">
+      <div class="fg"><label class="fl"><span id="f-projname-lbl">Project Title</span> <span class="sap-tag">SAP</span></label><input class="fi sap-fill" id="f-projname" type="text" readonly></div>
+      <div class="fg"><label class="fl"><span id="f-sapcode-lbl">SAP Code</span> <span class="sap-tag">SAP</span></label><input class="fi sap-fill" id="f-sapcode" type="text" readonly></div>
+      <div class="fg"><label class="fl"><span id="f-country-lbl">Country / Region</span> <span class="sap-tag">SAP</span></label><input class="fi sap-fill" id="f-country" type="text" readonly></div>
+      <div class="fg"><label class="fl"><span id="f-sector-lbl">Sector</span> <span class="sap-tag">SAP</span></label><input class="fi sap-fill" id="f-sector" type="text" readonly></div>
+      <div class="fg"><label class="fl"><span id="f-exagency-lbl">Executing Agency</span> <span class="req">*</span></label><input class="fi" id="f-exagency" type="text" oninput="updateProg()"></div>
+      <div class="fg"><label class="fl"><span id="f-iagency-lbl">Implementing Agency(ies)</span> <span class="req">*</span></label><input class="fi" id="f-iagency" type="text" oninput="updateProg()"></div>
+      <div class="fg fg-full"><label class="fl"><span id="f-pdo-lbl">Project Development Objective (as stated in the PAR)</span> <span class="req">*</span></label><textarea class="fta" id="f-pdo" rows="2" oninput="updateProg()" style="min-height:60px"></textarea></div>
+      <div class="fg fg-full"><label class="fl" id="f-components-lbl">Project Components</label><textarea class="fta" id="f-components" rows="2" style="min-height:60px"></textarea></div>
+    </div>
+    <div class="field-grid-4" style="margin-bottom:16px">
+      <div class="fg"><label class="fl"><span id="f-approval-lbl">Approval Date</span> <span class="sap-tag">SAP</span></label><input class="fi sap-fill" id="f-approval" type="text" readonly></div>
+      <div class="fg"><label class="fl"><span id="f-initcomp-lbl">Initial Completion Date</span> <span class="sap-tag">SAP</span></label><input class="fi sap-fill" id="f-initcomp" type="text" readonly></div>
+      <div class="fg"><label class="fl"><span id="f-revcomp-lbl">Revised Completion Date</span></label><input class="fi" id="f-revcomp" type="date"></div>
+      <div class="fg"><label class="fl"><span id="f-rptno-lbl">Report Number</span> <span class="req">*</span></label><input class="fi" id="f-rptno" type="number" min="1" placeholder="e.g. 4" oninput="updateProg()"></div>
+      <div class="fg"><label class="fl"><span id="f-period-from-lbl">Reporting Period From</span> <span class="req">*</span></label><input class="fi" id="f-period-from" type="date" oninput="updateProg()"></div>
+      <div class="fg"><label class="fl"><span id="f-period-to-lbl">To</span> <span class="req">*</span></label><input class="fi" id="f-period-to" type="date" oninput="updateProg()"></div>
+      <div class="fg"><label class="fl" id="f-elapse-lbl">Elapsed Time (%)</label>
+        <div class="unit-wrap"><input class="fi" id="f-elapse" type="number" min="0" max="100" oninput="document.getElementById('elapse-bar').style.width=Math.min(this.value,100)+'%'"><span class="unit-badge">%</span></div>
+        <div class="elapse-bar-wrap"><div class="elapse-bar-fill" id="elapse-bar" style="width:0%"></div></div>
+        <div class="fhint" id="f-elapse-hint">= (Report date – Approval date) / (Completion date – Approval date)</div>
+      </div>
+      <div class="fg"><label class="fl" id="f-disbrate-lbl">Disbursement Rate (%)</label>
+        <div class="unit-wrap"><input class="fi" id="f-disbrate" type="number" min="0" max="100"><span class="unit-badge">%</span></div>
+      </div>
+    </div>
+
+    <div class="sub-title" id="A2-title">A.2 – Financing Plan</div>
+    <div class="tbl-scroll"><table class="ind-table" id="fin-plan-table" style="min-width:650px">
+      <thead><tr><th id="th-finsrc">Financing Source / Instrument</th><th id="th-orig">Orig. Approved (UA)</th><th id="th-addl">Add./Cancelled (UA)</th><th id="th-updated">Updated Total (UA)</th><th id="th-disbpct">Disbursed (%)</th><th style="width:28px"></th></tr></thead>
+      <tbody id="fin-plan-tbody"></tbody>
+    </table></div>
+    <button class="add-row-btn" onclick="addFinRow()" id="btn-add-fin">+ Add financing source</button>
+
+    <div class="sub-title" style="margin-top:20px" id="A3-title">A.3 – Compliance with Project Covenants <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. ½ page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="A3-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="A3-bullets">
+        <li>Overall performance and timeliness in the delivery of project covenants against expectations.</li>
+        <li>For covenants (List included in loan/grant agreement) that are still pending at the time of reporting, provide underlying reasons for the delays and a revised delivery timeline. If no covenant is pending, there is no need to update this section.</li>
+        <li>Fill in the table in Annex 1.1.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-covenants" oninput="updateProg()"></textarea>
+    <div style="margin-top:10px"><span class="annex-ref" onclick="goToAnnex('ann1','ann11-title')" id="goto-ann11">↓ Complete Annex 1.1 — Status of Project Covenants</span></div>
+
+    <div class="sub-title" style="margin-top:20px" id="A4-title">A.4 – PIU Office Establishment and Staffing <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. ½ page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="A4-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="A4-bullets">
+        <li>Status of office establishment and staffing, including office set up and equipment, progress in recruitment (key positions filled, unfilled, being filled at the time of reporting).</li>
+        <li>Summary of key challenges (capacity gap and needs, turnover, etc.), actions taken and further proposals to address them.</li>
+        <li>Project Steering Committee including establishment, frequency of meetings, clearance of documents.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-piu" oninput="updateProg()"></textarea>
+
+    <div class="sub-title" style="margin-top:20px" id="A5-title">A.5 – Implementation of Agreed Actions from the Last Project Progress Report / Supervision Mission <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. ½ page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="A5-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="A5-bullets">
+        <li>Implementation status of agreed actions during the last reporting period and/or supervision mission — provide percentage of actions successfully implemented.</li>
+        <li>Overview of pending actions, justifications and the next steps.</li>
+        <li>Fill in the table in Annex 1.2.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-agreed" oninput="updateProg()"></textarea>
+    <div style="margin-top:10px"><span class="annex-ref" onclick="goToAnnex('ann1','ann12-title')" id="goto-ann12">↓ Complete Annex 1.2 — Update on Corrective Actions</span></div>
+
+  </div>
+</div>
+
+<!-- ══ B ══ -->
+<div class="section-panel" id="sB">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">B</div>
+    <div class="sec-title" id="sB-title">B – Procurement Performance</div>
+    <span class="sec-badge empty" id="badge-sB">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+
+    <div class="sub-title" id="B1-title">B.1 – Procurement Plan Implementation <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="B1-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="B1-bullets">
+        <li>Progress in the implementation of the procurement plan (planned vs awarded), delays, reasons for delays and planned measures to recover the lost time.</li>
+        <li>Performance of procurement systems — Bank or Borrower procurement systems and whether there is a need to revise the relevant thresholds.</li>
+        <li>Summary of key challenges, including issues no-objections, capacity to implement procurement, stakeholders' performance, etc.</li>
+        <li>Updated Procurement plan to accompany the report (annexed or separate attachment).</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-proc-plan" oninput="setBadge('badge-sB','partial');updateProg()"></textarea>
+    <div style="margin-top:10px"><span class="annex-ref" onclick="goToAnnex('ann3','ann31-title')" id="goto-ann31">↓ Complete Annex 3.1 — Procurement Activities Status</span></div>
+
+    <div class="sub-title" style="margin-top:20px" id="B2-title">B.2 – Management of Ongoing Contracts <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1.5 pages)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="B2-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="B2-bullets">
+        <li>Performance and progress of ongoing contracts with a focus on the top 3 contracts (in terms of size) per category (Works, Goods, Services).</li>
+        <li>Summary of key challenges regarding contract management, and proposals to address them.</li>
+        <li>Fill in the table in Annex 3.2 and/or 3.3 as relevant.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-contracts"></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <span class="annex-ref" onclick="goToAnnex('ann3','ann32-title')" id="goto-ann32">↓ Annex 3.2 (Bank System)</span>
+      <span class="annex-ref" onclick="goToAnnex('ann3','ann33-title')" id="goto-ann33">↓ Annex 3.3 (Borrower System)</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ C ══ -->
+<div class="section-panel" id="sC">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">C</div>
+    <div class="sec-title" id="sC-title">C – Financial Performance</div>
+    <span class="sec-badge sap">SAP</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="C1-title">C.1 – Financial Summary <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span></div>
+    <div class="fin-grid" id="fin-cards"></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="C1-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="C1-bullets">
+        <li>Summary of progress in the implementation of the disbursement plan (actual vs target).</li>
+        <li>Assessment of disbursement performance by source of financing for Bank approved financing: assess overall progress towards annual and final targets.</li>
+        <li>Update on counterpart disbursement and co-financing disbursements as applicable.</li>
+        <li>Summary of the status of the special account including utilization (% utilization) and challenges.</li>
+        <li>Summary of key challenges related to the above-mentioned areas, actions taken and the way forward.</li>
+        <li>The Interim Financial Report (IFR) shall accompany the report (annexed or attached).</li>
+        <li>Fill in tables in Annex 4.1, 4.2 and 4.3.</li>
+      </ul>
+    </div>
+    <div class="field-grid">
+      <div class="fg"><label class="fl" id="f-fin-summary-lbl">Disbursement narrative & key challenges</label><textarea class="fta" id="f-fin-summary" oninput="updateProg()"></textarea></div>
+      <div class="fg"><label class="fl" id="f-special-acct-lbl">Special Account Status</label><textarea class="fta" id="f-special-acct"></textarea><div class="fhint" id="f-special-hint">Include % utilization and challenges</div></div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <span class="annex-ref" onclick="goToAnnex('ann4','ann41-title')" id="goto-ann41">↓ Annex 4.1 — Special Account</span>
+      <span class="annex-ref" onclick="goToAnnex('ann4','ann42-title')" id="goto-ann42">↓ Annex 4.2 — Receipts & Expenditure</span>
+      <span class="annex-ref" onclick="goToAnnex('ann4','ann43-title')" id="goto-ann43">↓ Annex 4.3 — Disbursement Reconciliation</span>
+    </div>
+
+    <div class="sub-title" style="margin-top:20px" id="C2-title">C.2 – Audit and Financial Management Compliance <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. ½ page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="C2-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="C2-bullets">
+        <li>Audit reports status for audits due at the time of reporting. Provide reasons for overdue reports and a revised timeline to finalize them.</li>
+        <li>Summary of key issues raised by audit reports and recommendations proposed/implemented.</li>
+        <li>Fill in tables in Annexes 4.4 and 4.5.</li>
+      </ul>
+    </div>
+    <div class="field-grid">
+      <div class="fg"><label class="fl" id="f-audit-status-lbl">Audit Reports Status</label><textarea class="fta" id="f-audit-status"></textarea></div>
+      <div class="fg"><label class="fl" id="f-audit-issues-lbl">Key Audit Issues & Recommendations</label><textarea class="fta" id="f-audit-issues"></textarea></div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <span class="annex-ref" onclick="goToAnnex('ann4','ann44-title')" id="goto-ann44">↓ Annex 4.4 — Audit Status</span>
+      <span class="annex-ref" onclick="goToAnnex('ann4','ann45-title')" id="goto-ann45">↓ Annex 4.5 — Audit Recommendations</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ D ══ -->
+<div class="section-panel" id="sD">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">D</div>
+    <div class="sec-title" id="sD-title">D – Physical and Results Progress</div>
+    <span class="sec-badge empty" id="badge-sD">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="D1-title">D.1 – Progress in the Implementation of Key Project Activities <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="D1-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="D1-bullets">
+        <li>Progress on key activities planned to date (provide a rough estimate of the overall physical progress if available from any contractor).</li>
+        <li>Key bottlenecks that have impacted on the implementation of activities, and actions undertaken to address them.</li>
+        <li>Change in scope and potential implications, as applicable.</li>
+        <li>Overall progress/trend to date towards annual targets as planned in the Annual Work Plan and Budget (AWPB) for each component, especially at Q4 report.</li>
+        <li>Fill in table in Annex 2.3.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-phys-progress" oninput="setBadge('badge-sD','partial');updateProg()"></textarea>
+    <div style="margin-top:10px"><span class="annex-ref" onclick="goToAnnex('ann2','ann23-title')" id="goto-ann23">↓ Complete Annex 2.3 — Activity Progress Table</span></div>
+
+    <div class="sub-title" style="margin-top:20px" id="D2-title">D.2 – Progress Made Towards Project Outputs and Outcomes <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="D2-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="D2-bullets">
+        <li>Progress towards achieving the main output indicators; proportion of output indicators that are achieved, on-track and off-track; and underlying reasons.</li>
+        <li>Likelihood of output contributing to achievement of outcomes; provide proportion of outcome indicators that are achieved, on-track and off-track; and the underlying reasons. Ensure that Q4 report provides updates on outcome indicators.</li>
+        <li>Highlights of monitoring and evaluation challenges e.g. capacity, data availability, data collection issues, etc.</li>
+        <li>Fill in tables in Annexes 2.1 and 2.2.</li>
+      </ul>
+    </div>
+    <div class="field-grid">
+      <div class="fg"><label class="fl" id="f-outputs-lbl">Output Indicators Narrative</label><textarea class="fta" id="f-outputs"></textarea></div>
+      <div class="fg"><label class="fl" id="f-outcomes-lbl">Outcome Indicators Narrative</label><textarea class="fta" id="f-outcomes"></textarea></div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <span class="annex-ref" onclick="goToAnnex('ann2','ann21-title')" id="goto-ann21">↓ Annex 2.1 — Outcome Indicators</span>
+      <span class="annex-ref" onclick="goToAnnex('ann2','ann22-title')" id="goto-ann22">↓ Annex 2.2 — Output Indicators</span>
+    </div>
+
+    <div class="sub-title" style="margin-top:20px" id="D3-title">D.3 – Planned Key Activities for Next Quarter (as per AWP) <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. ½ page)</span></div>
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="D3-lbl">Guidance</span></div>
+      <ul class="q-bullets" id="D3-bullets">
+        <li>Summary of key upcoming activities for the next Quarter including activities that are still ongoing from previous quarters with updated timelines.</li>
+        <li>Fill in table in Annex 2.4.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-next-activities"></textarea>
+    <div style="margin-top:10px"><span class="annex-ref" onclick="goToAnnex('ann2','ann24-title')" id="goto-ann24">↓ Complete Annex 2.4 — Next Quarter Activities</span></div>
+  </div>
+</div>
+
+<!-- ══ E ══ -->
+<div class="section-panel" id="sE">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">E</div>
+    <div class="sec-title" id="sE-title">E – Safeguards</div>
+    <span class="sec-badge empty" id="badge-sE">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="E-lbl">Guidance <span style="font-size:10px;font-weight:400">(approx. ½ page)</span></span></div>
+      <ul class="q-bullets" id="E-bullets">
+        <li>Update the list of E&amp;S safeguard documents prepared and published by the Borrower and the Bank.</li>
+        <li>Summary on progress made in the implementation of Environmental &amp; Social Management Plan (ESMP), Resettlement Action Plan (RAP), etc.</li>
+        <li>Assessment of the overall progress in meeting E&amp;S obligations as defined in the financing agreement.</li>
+      </ul>
+    </div>
+    <div class="field-grid">
+      <div class="fg"><label class="fl" id="f-esmp-lbl">E&S Safeguard Documents Published</label><textarea class="fta" id="f-esmp" oninput="setBadge('badge-sE','partial');updateProg()"></textarea></div>
+      <div class="fg"><label class="fl" id="f-rap-lbl">ESMP / RAP Implementation Progress</label><textarea class="fta" id="f-rap"></textarea></div>
+      <div class="fg fg-full"><label class="fl" id="f-es-oblig-lbl">Overall E&S Obligations Assessment</label><textarea class="fta" id="f-es-oblig" style="min-height:60px"></textarea></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ F ══ -->
+<div class="section-panel" id="sF">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">F</div>
+    <div class="sec-title" id="sF-title">F – Cross-Cutting Issues</div>
+    <span class="sec-badge empty" id="badge-sF">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="F-lbl">Guidance <span style="font-size:10px;font-weight:400">(approx. 1 page — discuss only issues relevant to this project)</span></span></div>
+      <ul class="q-bullets" id="F-bullets">
+        <li>Assessment of progress in mainstreaming Gender — collection of disaggregated data, implementation of the Gender action plan (as applicable).</li>
+        <li>Assessment of jobs, skills and youth mainstreaming for relevant projects including collection of disaggregated data.</li>
+        <li>Assessment of fragility and climate change aspects (as applicable).</li>
+      </ul>
+    </div>
+    <div class="field-grid">
+      <div class="fg"><label class="fl" id="f-gender-lbl">Gender Mainstreaming</label><textarea class="fta" id="f-gender" oninput="setBadge('badge-sF','partial');updateProg()"></textarea></div>
+      <div class="fg"><label class="fl" id="f-youth-lbl">Jobs, Skills & Youth</label><textarea class="fta" id="f-youth"></textarea></div>
+      <div class="fg fg-full"><label class="fl" id="f-fragility-lbl">Fragility & Climate Change</label><textarea class="fta" id="f-fragility" style="min-height:60px"></textarea></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ G ══ -->
+<div class="section-panel" id="sG">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">G</div>
+    <div class="sec-title" id="sG-title">G – Key Risks and Mitigation Measures</div>
+    <span class="sec-badge empty" id="badge-sG">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="G-lbl">Guidance <span style="font-size:10px;font-weight:400">(approx. ½ page)</span></span></div>
+      <ul class="q-bullets" id="G-bullets">
+        <li>Summary of key emerging risks and proposed mitigation measures: socio-economic/political context, procurement, E&amp;S, disbursement, audits, etc.</li>
+        <li>Fill in detailed risks in Annex 5.1.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-risks-summary" oninput="setBadge('badge-sG','partial');updateProg()"></textarea>
+    <div style="margin-top:10px"><span class="annex-ref" onclick="goToAnnex('ann5','ann51-title')" id="goto-ann51">↓ Complete Annex 5.1 — Risk Register</span></div>
+  </div>
+</div>
+
+<!-- ══ H ══ -->
+<div class="section-panel" id="sH">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">H</div>
+    <div class="sec-title" id="sH-title">H – Key Issues and Actions for Attention</div>
+    <span class="sec-badge empty" id="badge-sH">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="q-block">
+      <div class="q-header"><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="6" stroke="var(--green-700)" stroke-width="1.2"/><path d="M6.5 5.5v4M6.5 3.5v.5" stroke="var(--green-700)" stroke-width="1.4" stroke-linecap="round"/></svg> <span id="H-lbl">Guidance <span style="font-size:10px;font-weight:400">(approx. ½ page)</span></span></div>
+      <ul class="q-bullets" id="H-bullets">
+        <li>Summary of key issues and actions for the attention of the Bank's task team and management — recap of key issues raised across the report.</li>
+        <li>Fill in detailed actions in Annex 5.3.</li>
+      </ul>
+    </div>
+    <textarea class="fta" id="f-key-issues" oninput="setBadge('badge-sH','partial');updateProg()"></textarea>
+    <div style="margin-top:10px"><span class="annex-ref" onclick="goToAnnex('ann5','ann53-title')" id="goto-ann53">↓ Complete Annex 5.3 — Issues & Actions Log</span></div>
+  </div>
+</div>
+
+<!-- ══ I ══ -->
+<div class="section-panel" id="sI">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-alpha">I</div>
+    <div class="sec-title" id="sI-title">I – Report Preparation, Review & Clearance</div>
+    <span class="sec-badge empty" id="badge-sI">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="I-prep-title">Prepared by: Project Implementation Unit</div>
+    <div class="tbl-scroll"><table class="ind-table" id="prep-table" style="min-width:400px">
+      <thead><tr><th id="th-name1">Name</th><th id="th-role1">Role</th><th style="width:28px"></th></tr></thead>
+      <tbody id="prep-tbody"></tbody>
+    </table></div>
+    <button class="add-row-btn" onclick="addPersonRow('prep-tbody',2)" id="btn-add-prep">+ Add person</button>
+
+    <div class="sub-title" style="margin-top:16px" id="I-rev-title">Reviewed by: Bank Project Task Team</div>
+    <div class="tbl-scroll"><table class="ind-table" id="rev-table" style="min-width:600px">
+      <thead><tr><th id="th-name2">Name</th><th id="th-role2">Role</th><th id="th-daterev">Date Reviewed</th><th id="th-comments1">Comments</th><th style="width:28px"></th></tr></thead>
+      <tbody id="rev-tbody"></tbody>
+    </table></div>
+    <button class="add-row-btn" onclick="addPersonRow('rev-tbody',4)" id="btn-add-rev">+ Add reviewer</button>
+
+    <div class="sub-title" style="margin-top:16px" id="I-clr-title">Cleared by: Bank Task Manager (and/or alternate)</div>
+    <div class="tbl-scroll"><table class="ind-table" id="clr-table" style="min-width:600px">
+      <thead><tr><th>Name</th><th>Role</th><th>Date</th><th>Comments</th><th style="width:28px"></th></tr></thead>
+      <tbody id="clr-tbody"></tbody>
+    </table></div>
+    <button class="add-row-btn" onclick="addPersonRow('clr-tbody',4)" id="btn-add-clr">+ Add clearance</button>
+  </div>
+</div>
+
+<!-- ══════════════════ ANNEXES ══════════════════ -->
+<div class="annex-divider" id="annex-header">Annexes</div>
+
+<!-- ANN 1 -->
+<div class="section-panel" id="ann1">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-num">1</div>
+    <div class="sec-title" id="ann1-title">Annex 1 – General Documents</div>
+    <span class="sec-badge empty" id="badge-ann1">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="ann11-title">Annex 1.1 – Status of Project Covenants</div>
+    <div id="ann11-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann12-title">Annex 1.2 – Update on Corrective Actions Agreed in the Last Quarter</div>
+    <div id="ann12-widget"></div>
+  </div>
+</div>
+
+<!-- ANN 2 -->
+<div class="section-panel" id="ann2">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-num">2</div>
+    <div class="sec-title" id="ann2-title">Annex 2 – Results Progress</div>
+    <span class="sec-badge empty" id="badge-ann2">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="ann21-title">Annex 2.1 – Outcome Reporting <span style="font-size:10px;font-weight:400;color:var(--gray-400)">(to be assessed annually at Q4)</span></div>
+    <div id="ann21-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann22-title">Annex 2.2 – Output Reporting</div>
+    <div id="ann22-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann23-title">Annex 2.3 – Progress in Implementation of Planned Activities (Previous Quarter)</div>
+    <div id="ann23-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann24-title">Annex 2.4 – Key Activities Planned for Next Quarter</div>
+    <div id="ann24-widget"></div>
+  </div>
+</div>
+
+<!-- ANN 3 -->
+<div class="section-panel" id="ann3">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-num">3</div>
+    <div class="sec-title" id="ann3-title">Annex 3 – Procurement</div>
+    <span class="sec-badge empty" id="badge-ann3">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="ann31-title">Annex 3.1 – Status of Procurement Activities (Previous Quarter)</div>
+    <div id="ann31-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann32-title">Annex 3.2 – Management of Ongoing Contracts – Bank Procurement System</div>
+    <div id="ann32-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann33-title">Annex 3.3 – Management of Ongoing Contracts – Borrower Procurement System</div>
+    <div id="ann33-widget"></div>
+  </div>
+</div>
+
+<!-- ANN 4 -->
+<div class="section-panel" id="ann4">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-num">4</div>
+    <div class="sec-title" id="ann4-title">Annex 4 – Financial Management & Disbursement</div>
+    <span class="sec-badge empty" id="badge-ann4">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="ann41-title">Annex 4.1 – Special Account Justification</div>
+    <div id="ann41-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann42-title">Annex 4.2 – Receipts & Expenditure Statement (by Component & Activity)</div>
+    <div id="ann42-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann43-title">Annex 4.3 – Reconciliation of Disbursement Requests</div>
+    <div id="ann43-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann44-title">Annex 4.4 – Audit Status</div>
+    <div id="ann44-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann45-title">Annex 4.5 – Implementation Status of Audit Recommendations</div>
+    <div id="ann45-widget"></div>
+  </div>
+</div>
+
+<!-- ANN 5 -->
+<div class="section-panel" id="ann5">
+  <div class="section-hdr" onclick="toggleSec(this)">
+    <div class="sec-num">5</div>
+    <div class="sec-title" id="ann5-title">Annex 5 – Risks, Actions & Lessons Learned</div>
+    <span class="sec-badge empty" id="badge-ann5">Not filled</span><span class="chevron open">▾</span>
+  </div>
+  <div class="section-body">
+    <div class="sub-title" id="ann51-title">Annex 5.1 – Risks and Mitigation Measures</div>
+    <div style="font-size:11px;color:var(--gray-500);margin-bottom:10px;padding:8px 12px;background:var(--amber-50);border:1px solid var(--amber-100);border-radius:var(--r-sm)" id="ann51-note">
+      Rating scale — <strong>HIGH</strong>: almost certain to occur, very severe adverse impact. <strong>SUBSTANTIAL</strong>: likely to occur, severe impact. <strong>MODERATE</strong>: possibly occur, moderate impact. <strong>LOW</strong>: minor impact regardless of likelihood.
+    </div>
+    <div id="ann51-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann52-title">Annex 5.2 – Lessons Learned Register</div>
+    <div id="ann52-widget"></div>
+    <div class="sub-title" style="margin-top:20px" id="ann53-title">Annex 5.3 – Issues and Actions for the Attention of Management</div>
+    <div id="ann53-widget"></div>
+  </div>
+</div>
+
+<!-- SUBMIT -->
+<div class="submit-row">
+  <div class="submit-info">
+    <div class="submit-title" id="submit-title">Ready to submit?</div>
+    <div class="submit-sub" id="submit-sub">The QPR will be transmitted to the Bank's Task Manager for review and clearance.</div>
+  </div>
+  <button class="btn-lg word" onclick="exportWord()">
+    <svg width="15" height="15" viewBox="0 0 14 14" fill="none"><path d="M2 1.5h6.5L12 5v7.5a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5v-11A.5.5 0 012 1.5z" stroke="#2B579A" stroke-width="1.1"/><path d="M8.5 1.5V5H12" stroke="#2B579A" stroke-width="1.1"/><path d="M4.5 8l1.5 2.5L7.5 8M9.5 8v2.5" stroke="#2B579A" stroke-width="1.1" stroke-linecap="round"/></svg>
+    <span id="btn-export-lg">Export as Word (.docx)</span>
+  </button>
+  <button class="btn-lg outline" onclick="saveDraft()" id="btn-draft-lg">Save draft</button>
+  <button class="btn-lg primary" onclick="submitForm()" id="btn-submit-lg">Submit QPR →</button>
+</div>
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+</div><!-- /screen-form -->
+
+<div class="toast" id="toast">
+  <div class="toast-icon"><svg viewBox="0 0 12 12" fill="none" width="10" height="10"><path d="M2 6l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <span id="toast-msg">OK</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// SAP DATA
+// ═══════════════════════════════════════
+var SAP_DB = {
+  'P-MR-AAC-011':{
+    title:"Projet d'Appui à la Transformation Agricole en Mauritanie (PATAM)",
+    code:'P-MR-AAC-011',country:'Mauritanie',sector:'Irrigation and Drainage',
+    exagency:'Ministère de l\'Agriculture (MAED)',iagency:'UGP PATAM / MASA',
+    pdo:'Améliorer la productivité et la résilience des exploitations agricoles dans la vallée du fleuve Sénégal.',
+    components:'Component 1: Agricultural Infrastructure. Component 2: Agricultural Productivity. Component 3: Project Management.',
+    approval:'12 December 2018',initcomp:'31 December 2025',
+    sources:[
+      {src:'FAD Loan (No. 2100150040551)',orig:7000000,addl:0,total:7000000,pct:51.75},
+      {src:'NTF Loan (No. 2200160002241)',orig:6000000,addl:0,total:6000000,pct:52.57},
+      {src:'Government (Counterpart)',orig:1500000,addl:0,total:1500000,pct:35.0}
+    ],
+    elapse:82,disbrate:52
+  },
+  'P-SN-AAC-023':{
+    title:"Projet de Développement Rizicole au Sénégal (PDRS)",
+    code:'P-SN-AAC-023',country:'Sénégal',sector:'Agriculture',
+    exagency:'Ministère de l\'Agriculture et de l\'Équipement Rural',iagency:'SAED / UGP PDRS',
+    pdo:'Augmenter la production rizicole dans le Delta et la Moyenne Vallée du fleuve Sénégal.',
+    components:'Component A: Irrigation Infrastructure. Component B: Agricultural Services. Component C: Project Management.',
+    approval:'15 March 2020',initcomp:'31 March 2026',
+    sources:[
+      {src:'FAD Loan (No. 2100150041200)',orig:9000000,addl:0,total:9000000,pct:50.0},
+      {src:'NTF Loan (No. 2200160003100)',orig:5000000,addl:0,total:5000000,pct:42.0},
+      {src:'Government (Counterpart)',orig:2000000,addl:0,total:2000000,pct:60.0}
+    ],
+    elapse:55,disbrate:47
+  },
+  'P-ML-AAC-007':{
+    title:"Projet d'Aménagement Hydro-agricole au Mali (PAHAM)",
+    code:'P-ML-AAC-007',country:'Mali',sector:'Irrigation and Drainage',
+    exagency:'Ministère de l\'Agriculture (MDRE)',iagency:'Office du Niger / UGP PAHAM',
+    pdo:'Accroître la superficie irriguée et améliorer la sécurité alimentaire dans le delta intérieur du Niger.',
+    components:'Component 1: Infrastructure Development. Component 2: Capacity Building. Component 3: Project Coordination.',
+    approval:'20 June 2017',initcomp:'30 June 2024',
+    sources:[
+      {src:'FAD Loan (No. 2100150039800)',orig:11000000,addl:0,total:11000000,pct:70.0},
+      {src:'NTF Loan (No. 2200160002900)',orig:4000000,addl:0,total:4000000,pct:65.0},
+      {src:'Government (Counterpart)',orig:2500000,addl:0,total:2500000,pct:85.0}
+    ],
+    elapse:95,disbrate:69
+  }
+};
+
+var currentLang='en', currentProject=null, progVal=0;
+
+// ═══════════════════════════════════════
+// TRANSLATIONS
+// ═══════════════════════════════════════
+var TR={
+  en:{
+    'lk-sub-brand':'African Development Bank',
+    'lk-title':'New Project<br>Progress Report',
+    'lk-sub':'Enter the SAP project code to load reference data and open the QPR form.',
+    'lk-recent':'Recent Projects',
+    'btn-text':'Load SAP Data','btn-loading':'Connecting to SAP…',
+    'error-msg':'Project code not found in SAP. Check format (e.g. P-MR-AAC-011).',
+    'btn-open-form':'Open QPR Form →',
+    'nav-main-lbl':'Main Sections','nav-annex-lbl':'Annexes',
+    'navA':'Project Background','navB':'Procurement','navC':'Financial Performance',
+    'navD':'Physical Progress','navE':'Safeguards','navF':'Cross-Cutting',
+    'navG':'Risks','navH':'Key Issues','navI':'Clearance',
+    'navAnn1':'Covenants & Actions','navAnn2':'Results Progress',
+    'navAnn3':'Procurement Tables','navAnn4':'Financial Tables','navAnn5':'Risks & Actions',
+    'sap-lbl':'SAP — data loaded','btn-change':'Change project',
+    'topbar-lbl':'Project Progress Report','btn-export-lbl':'Export Word',
+    'btn-draft-lbl':'Draft','btn-submit-lbl':'Submit →',
+    'banner-title':'Pre-filled from SAP',
+    'tab-form':'Use template table','tab-upload':'Upload external file',
+    'upload-title':'Drop file here or click to browse','upload-sub':'Accepts .xlsx, .csv, .pdf, .docx',
+    'add-row':'+ Add row',
+    'badge-filled':'Filled','badge-partial':'In progress','badge-empty':'Not filled',
+    'toast-draft':'Draft saved','toast-submit':'QPR submitted — Task Manager notified',
+    'toast-export':'Word export generated','toast-export-err':'Please load a project first','toast-upload':'File attached',
+    'submit-title':'Ready to submit?',
+    'submit-sub':'The QPR will be transmitted to the Bank\'s Task Manager for review and clearance.',
+    'btn-export-lg':'Export as Word (.docx)','btn-draft-lg':'Save draft','btn-submit-lg':'Submit QPR →',
+    'annex-header':'Annexes',
+    'A3-lbl':'Guidance','A4-lbl':'Guidance','A5-lbl':'Guidance',
+    'B1-lbl':'Guidance','B2-lbl':'Guidance','C1-lbl':'Guidance','C2-lbl':'Guidance',
+    'D1-lbl':'Guidance','D2-lbl':'Guidance','D3-lbl':'Guidance',
+    'E-lbl':'Guidance','F-lbl':'Guidance','G-lbl':'Guidance','H-lbl':'Guidance',
+    'goto-ann11':'→ Complete Annex 1.1 — Status of Project Covenants',
+    'goto-ann12':'→ Complete Annex 1.2 — Update on Corrective Actions',
+    'goto-ann21':'→ Annex 2.1 — Outcome Indicators','goto-ann22':'→ Annex 2.2 — Output Indicators',
+    'goto-ann23':'→ Complete Annex 2.3 — Activity Progress Table','goto-ann24':'→ Complete Annex 2.4 — Next Quarter Activities',
+    'goto-ann31':'→ Complete Annex 3.1 — Procurement Activities Status',
+    'goto-ann32':'→ Annex 3.2 (Bank System)','goto-ann33':'→ Annex 3.3 (Borrower System)',
+    'goto-ann41':'→ Annex 4.1','goto-ann42':'→ Annex 4.2','goto-ann43':'→ Annex 4.3',
+    'goto-ann44':'→ Annex 4.4','goto-ann45':'→ Annex 4.5',
+    'goto-ann51':'→ Complete Annex 5.1 — Risk Register','goto-ann53':'→ Complete Annex 5.3 — Issues & Actions Log',
+  },
+  fr:{
+    'lk-sub-brand':'Banque Africaine de Développement',
+    'lk-title':'Nouveau Rapport<br>d\'État d\'Exécution du Projet',
+    'lk-sub':'Saisissez le code SAP du projet pour charger automatiquement les données de référence et ouvrir le formulaire QPR.',
+    'lk-recent':'Projets récents',
+    'btn-text':'Charger les données SAP','btn-loading':'Connexion à SAP…',
+    'error-msg':'Code projet introuvable dans SAP. Vérifiez le format (ex : P-MR-AAC-011).',
+    'btn-open-form':'Ouvrir le formulaire QPR →',
+    'nav-main-lbl':'Sections principales','nav-annex-lbl':'Annexes',
+    'navA':'Informations générales','navB':'Passation de marchés','navC':'Performance financière',
+    'navD':'Progrès physique et résultats','navE':'Sauvegardes','navF':'Aspects transversaux',
+    'navG':'Risques','navH':'Problèmes principaux','navI':'Validation',
+    'navAnn1':'Documents généraux','navAnn2':'Progrès sur les résultats',
+    'navAnn3':'Passation de marchés','navAnn4':'Gestion financière','navAnn5':'Risques, Actions & Enseignements',
+    'sap-lbl':'SAP — données chargées','btn-change':'Changer de projet',
+    'topbar-lbl':'Rapport d\'État d\'Exécution du Projet','btn-export-lbl':'Exporter Word',
+    'btn-draft-lbl':'Brouillon','btn-submit-lbl':'Soumettre →',
+    'banner-title':'Données pré-remplies depuis SAP',
+    'tab-form':'Utiliser le tableau modèle','tab-upload':'Télécharger un fichier externe',
+    'upload-title':'Déposez le fichier ici ou cliquez pour parcourir','upload-sub':'Accepte .xlsx, .csv, .pdf, .docx',
+    'add-row':'+ Ajouter une ligne',
+    'badge-filled':'Renseigné','badge-partial':'En cours','badge-empty':'Non renseigné',
+    'toast-draft':'Brouillon enregistré','toast-submit':'QPR soumis — Chargé(e) de projet notifié(e)',
+    'toast-export':'Export Word généré','toast-export-err':'Veuillez d\'abord charger un projet','toast-upload':'Fichier joint',
+    'submit-title':'Prêt à soumettre ?',
+    'submit-sub':'Le QPR sera transmis au/à la chargé(e) de projet de la Banque pour révision et approbation.',
+    'btn-export-lg':'Exporter en Word (.docx)','btn-draft-lg':'Enregistrer brouillon','btn-submit-lg':'Soumettre QPR →',
+    'annex-header':'Annexes au rapport principal',
+    'A3-lbl':'Orientations','A4-lbl':'Orientations','A5-lbl':'Orientations',
+    'B1-lbl':'Orientations','B2-lbl':'Orientations','C1-lbl':'Orientations','C2-lbl':'Orientations',
+    'D1-lbl':'Orientations','D2-lbl':'Orientations','D3-lbl':'Orientations',
+    'E-lbl':'Orientations','F-lbl':'Orientations','G-lbl':'Orientations','H-lbl':'Orientations',
+    'goto-ann11':'↓ Remplir l\'Annexe 1.1 — Respect des clauses du projet',
+    'goto-ann12':'↓ Remplir l\'Annexe 1.2 — Actions correctives convenues',
+    'goto-ann21':'↓ Annexe 2.1 — Rapport sur les effets',
+    'goto-ann22':'↓ Annexe 2.2 — Rapport sur les produits',
+    'goto-ann23':'↓ Remplir l\'Annexe 2.3 — Mise en œuvre des activités planifiées',
+    'goto-ann24':'↓ Remplir l\'Annexe 2.4 — Activités planifiées pour le prochain trimestre',
+    'goto-ann31':'↓ Remplir l\'Annexe 3.1 — État des acquisitions',
+    'goto-ann32':'↓ Annexe 3.2 (Système de passation de la Banque)',
+    'goto-ann33':'↓ Annexe 3.3 (Système de passation de l\'Emprunteur)',
+    'goto-ann41':'↓ Annexe 4.1 — Compte spécial',
+    'goto-ann42':'↓ Annexe 4.2 — État des recettes et dépenses',
+    'goto-ann43':'↓ Annexe 4.3 — Rapprochement des demandes de décaissement',
+    'goto-ann44':'↓ Annexe 4.4 — Statut des audits',
+    'goto-ann45':'↓ Annexe 4.5 — Mise en œuvre des recommandations d\'audit',
+    'goto-ann51':'↓ Remplir l\'Annexe 5.1 — Risques et mesures d\'atténuation',
+    'goto-ann53':'↓ Remplir l\'Annexe 5.3 — Points et actions à l\'attention de la direction',
+  }
+};
+function t(k){return (TR[currentLang]&&TR[currentLang][k])||(TR.en&&TR.en[k])||k;}
+
+function setLang(lang){
+  currentLang=lang;
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.toggle('active',b.textContent.trim()===lang.toUpperCase());});
+  applyTranslations();
+}
+// ─── BILINGUAL CONTENT ──────────────────────────────────────────────────────
+var BULLETS={
+  "sA-title":{en:"A \u2013 Project Background Information",fr:"A \u2013 Informations g\u00e9n\u00e9rales sur le projet"},
+  "A1-title":{en:"A.1 \u2013 Basic Data",fr:"A.1 \u2013 Donn\u00e9es du rapport"},
+  "A2-title":{en:"A.2 \u2013 Financing Plan",fr:"A.2 \u2013 Plan de financement"},
+  "A3-title":{en:'A.3 \u2013 Compliance with Project Covenants <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>',fr:'A.3 \u2013 Respect des clauses du projet <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>'},
+  "A4-title":{en:'A.4 \u2013 PIU Office Establishment and Staffing <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>',fr:'A.4 \u2013 Mise en place de l\u2019Unit\u00e9 de Gestion de Projet (UGP) et dotation en personnel <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>'},
+  "A5-title":{en:'A.5 \u2013 Implementation of Agreed Actions from the Last QPR / Supervision Mission <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>',fr:'A.5 \u2013 Mise en \u0153uvre des actions convenues lors du dernier rapport/mission de supervision <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>'},
+  "sB-title":{en:"B \u2013 Procurement Performance",fr:"B \u2013 Performance de la passation de march\u00e9s"},
+  "B1-title":{en:'B.1 \u2013 Procurement Plan Implementation <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>',fr:'B.1 \u2013 Mise en \u0153uvre du plan de passation de march\u00e9s <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>'},
+  "B2-title":{en:'B.2 \u2013 Management of Ongoing Contracts <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1.5 pages)</span>',fr:'B.2 \u2013 Gestion des contrats en cours <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1,5 page)</span>'},
+  "sC-title":{en:"C \u2013 Financial Performance",fr:"C \u2013 Performance financi\u00e8re"},
+  "C1-title":{en:'C.1 \u2013 Financial Summary <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>',fr:'C.1 \u2013 R\u00e9sum\u00e9 financier <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>'},
+  "C2-title":{en:'C.2 \u2013 Audit and Financial Management Compliance <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>',fr:'C.2 \u2013 Audit et conformit\u00e9 de la gestion financi\u00e8re <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>'},
+  "sD-title":{en:"D \u2013 Physical and Results Progress",fr:"D \u2013 Progr\u00e8s physique et sur les r\u00e9sultats"},
+  "D1-title":{en:'D.1 \u2013 Progress in the Implementation of Key Project Activities <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>',fr:'D.1 \u2013 Progr\u00e8s dans la mise en \u0153uvre des activit\u00e9s cl\u00e9s du projet <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>'},
+  "D2-title":{en:'D.2 \u2013 Progress Made Towards Project Outputs and Outcomes <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>',fr:'D.2 \u2013 Progr\u00e8s r\u00e9alis\u00e9s sur les produits et les effets du projet <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. 1 page)</span>'},
+  "D3-title":{en:'D.3 \u2013 Planned Key Activities for Next Quarter (as per AWP) <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>',fr:'D.3 \u2013 Activit\u00e9s cl\u00e9s pr\u00e9vues pour le prochain trimestre (conform\u00e9ment au PTBA) <span style="font-size:10px;font-weight:400;color:var(--gray-500)">(approx. \u00bd page)</span>'},
+  "sE-title":{en:"E \u2013 Safeguards",fr:"E \u2013 Sauvegardes"},
+  "sF-title":{en:"F \u2013 Cross-Cutting Issues",fr:"F \u2013 Aspects transversaux"},
+  "sG-title":{en:"G \u2013 Key Risks and Mitigation Measures",fr:"G \u2013 Principaux risques et mesures d\u2019att\u00e9nuation"},
+  "sH-title":{en:"H \u2013 Key Issues and Actions for Attention",fr:"H \u2013 Probl\u00e8mes principaux et actions \u00e0 l\u2019attention de la Banque"},
+  "sI-title":{en:"I \u2013 Report Preparation, Review & Clearance",fr:"I \u2013 Pr\u00e9paration du rapport, revue et approbation"},
+  "I-prep-title":{en:"Prepared by: Project Implementation Unit",fr:"Pr\u00e9par\u00e9 par : Unit\u00e9 de Gestion du Projet"},
+  "I-rev-title":{en:"Reviewed by: Bank Project Task Team",fr:"Revu par : \u00c9quipe de gestion de projet de la Banque"},
+  "I-clr-title":{en:"Cleared by: Bank Task Manager (and/or alternate)",fr:"Approuv\u00e9 par : Charg\u00e9(e)s de projet de la Banque"},
+  "f-projname-lbl":{en:"Project Title",fr:"Titre du projet"},
+  "f-sapcode-lbl":{en:"SAP Code",fr:"Code SAP"},
+  "f-country-lbl":{en:"Country / Region",fr:"Pays / R\u00e9gion"},
+  "f-sector-lbl":{en:"Sector",fr:"Secteur"},
+  "f-exagency-lbl":{en:"Executing Agency",fr:"Agence d\u2019ex\u00e9cution"},
+  "f-iagency-lbl":{en:"Implementing Agency(ies)",fr:"Unit\u00e9(s) de gestion"},
+  "f-pdo-lbl":{en:"Project Development Objective (as stated in the PAR)",fr:"Objectif de D\u00e9veloppement du Projet (tel qu\u2019inscrit dans le REP)"},
+  "f-components-lbl":{en:"Project Components",fr:"Composantes du Projet"},
+  "f-approval-lbl":{en:"Approval Date",fr:"Date d\u2019approbation"},
+  "f-initcomp-lbl":{en:"Initial Completion Date",fr:"Date d\u2019ach\u00e8vement initiale"},
+  "f-revcomp-lbl":{en:"Revised Completion Date",fr:"Date d\u2019ach\u00e8vement r\u00e9vis\u00e9e"},
+  "f-rptno-lbl":{en:"Report Number",fr:"Num\u00e9ro du rapport"},
+  "f-period-from-lbl":{en:"Reporting Period From",fr:"P\u00e9riode couverte : du"},
+  "f-period-to-lbl":{en:"To",fr:"au"},
+  "f-elapse-lbl":{en:"Elapsed Time (%)",fr:"Temps \u00e9coul\u00e9 (%)"},
+  "f-elapse-hint":{en:"= (Report date \u2013 Approval date) / (Completion date \u2013 Approval date)",fr:"Depuis l\u2019approbation = (date du rapport \u2013 date d\u2019approbation) / (date d\u2019ach\u00e8vement \u2013 date d\u2019approbation)"},
+  "f-disbrate-lbl":{en:"Disbursement Rate (%)",fr:"Taux de d\u00e9caissement (%)"},
+  "th-finsrc":{en:"Financing Source / Instrument",fr:"Source de financement/instrument (Ajouter/supprimer au besoin)"},
+  "th-orig":{en:"Orig. Approved (UA)",fr:"Montant initialement approuv\u00e9 (UC)"},
+  "th-addl":{en:"Add./Cancelled (UA)",fr:"Montant additionnel / annul\u00e9"},
+  "th-updated":{en:"Updated Total (UA)",fr:"Montant approuv\u00e9 mis \u00e0 jour (UC)"},
+  "th-disbpct":{en:"Disbursed (%)",fr:"D\u00e9caiss\u00e9 \u00e0 date (%)"},
+  "btn-add-fin":{en:"+ Add financing source",fr:"+ Ajouter une source de financement"},
+  "f-fin-summary-lbl":{en:"Disbursement narrative & key challenges",fr:"Narrative des d\u00e9caissements et principaux d\u00e9fis"},
+  "f-special-acct-lbl":{en:"Special Account Status",fr:"Situation du compte sp\u00e9cial"},
+  "f-special-hint":{en:"Include % utilization and challenges",fr:"Inclure le taux d\u2019utilisation et les d\u00e9fis rencontr\u00e9s"},
+  "f-audit-status-lbl":{en:"Audit Reports Status",fr:"Statut des rapports d\u2019audit"},
+  "f-audit-issues-lbl":{en:"Key Audit Issues & Recommendations",fr:"Probl\u00e8mes cl\u00e9s relev\u00e9s et recommandations"},
+  "f-outputs-lbl":{en:"Output Indicators Narrative",fr:"Narrative sur les indicateurs de produit"},
+  "f-outcomes-lbl":{en:"Outcome Indicators Narrative",fr:"Narrative sur les indicateurs d\u2019effets"},
+  "f-esmp-lbl":{en:"E&S Safeguard Documents Published",fr:"Documents de sauvegardes E&S pr\u00e9par\u00e9s et publi\u00e9s"},
+  "f-rap-lbl":{en:"ESMP / RAP Implementation Progress",fr:"Avancement du PGES / PAR"},
+  "f-es-oblig-lbl":{en:"Overall E&S Obligations Assessment",fr:"\u00c9valuation des progr\u00e8s globaux dans le respect des obligations E&S"},
+  "f-gender-lbl":{en:"Gender Mainstreaming",fr:"Int\u00e9gration de la dimension genre"},
+  "f-youth-lbl":{en:"Jobs, Skills & Youth",fr:"Emplois, comp\u00e9tences et jeunesse"},
+  "f-fragility-lbl":{en:"Fragility & Climate Change",fr:"Fragilit\u00e9 et changement climatique"},
+  "ann1-title":{en:"Annex 1 \u2013 General Documents",fr:"Annexe 1 : Documents g\u00e9n\u00e9raux"},
+  "ann11-title":{en:"Annex 1.1 \u2013 Status of Project Covenants",fr:"Annexe 1.1 : Respect des clauses du projet"},
+  "ann12-title":{en:"Annex 1.2 \u2013 Update on Corrective Actions Agreed in the Last Quarter",fr:"Annexe 1.2 : Mise en \u0153uvre des actions correctives convenues au cours du trimestre pr\u00e9c\u00e9dent"},
+  "ann2-title":{en:"Annex 2 \u2013 Results Progress",fr:"Annexe 2 : Progr\u00e8s sur les r\u00e9sultats"},
+  "ann21-title":{en:'Annex 2.1 \u2013 Outcome Reporting <span style="font-size:10px;font-weight:400;color:var(--gray-400)">(to be assessed annually at Q4)</span>',fr:'Annexe 2.1 : Rapport sur les effets <span style="font-size:10px;font-weight:400;color:var(--gray-400)">(à évaluer annuellement au T4)</span>'},
+  "ann22-title":{en:"Annex 2.2 \u2013 Output Reporting",fr:"Annexe 2.2 : Rapport sur les produits"},
+  "ann23-title":{en:"Annex 2.3 \u2013 Progress in Implementation of Planned Activities (Previous Quarter)",fr:"Annexe 2.3 : Progr\u00e8s dans la mise en \u0153uvre des activit\u00e9s planifi\u00e9es (trimestre pr\u00e9c\u00e9dent)"},
+  "ann24-title":{en:"Annex 2.4 \u2013 Key Activities Planned for Next Quarter",fr:"Annexe 2.4 : Activit\u00e9s planifi\u00e9es pour le trimestre suivant"},
+  "ann3-title":{en:"Annex 3 \u2013 Procurement",fr:"Annexe 3 : Passation de march\u00e9s"},
+  "ann31-title":{en:"Annex 3.1 \u2013 Status of Procurement Activities (Previous Quarter)",fr:"Annexe 3.1 : \u00c9tat des acquisitions pr\u00e9vues au cours du dernier trimestre"},
+  "ann32-title":{en:"Annex 3.2 \u2013 Management of Ongoing Contracts \u2013 Bank Procurement System",fr:"Annexe 3.2 : Gestion des contrats en cours \u2013 Syst\u00e8me de passation de la Banque"},
+  "ann33-title":{en:"Annex 3.3 \u2013 Management of Ongoing Contracts \u2013 Borrower Procurement System",fr:"Annexe 3.3 : Gestion des contrats en cours \u2013 Syst\u00e8me de passation de l\u2019Emprunteur"},
+  "ann4-title":{en:"Annex 4 \u2013 Financial Management & Disbursement",fr:"Annexe 4 : Gestion financi\u00e8re et D\u00e9caissement"},
+  "ann41-title":{en:"Annex 4.1 \u2013 Special Account Justification",fr:"Annexe 4.1 : Compte sp\u00e9cial"},
+  "ann42-title":{en:"Annex 4.2 \u2013 Receipts & Expenditure Statement (by Component & Activity)",fr:"Annexe 4.2 : \u00c9tat des recettes et des d\u00e9penses des fonds \u2013 par composante et activit\u00e9"},
+  "ann43-title":{en:"Annex 4.3 \u2013 Reconciliation of Disbursement Requests",fr:"Annexe 4.3 : Rapprochement des demandes de d\u00e9caissement soumises \u00e0 la Banque"},
+  "ann44-title":{en:"Annex 4.4 \u2013 Audit Status",fr:"Annexe 4.4 : Audit \u2013 Statut des rapports d\u2019audit soumis"},
+  "ann45-title":{en:"Annex 4.5 \u2013 Implementation Status of Audit Recommendations",fr:"Annexe 4.5 : Mise en \u0153uvre des recommandations d\u2019audit"},
+  "ann5-title":{en:"Annex 5 \u2013 Risks, Actions & Lessons Learned",fr:"Annexe 5 : Risques, Actions et Enseignements tir\u00e9s"},
+  "ann51-title":{en:"Annex 5.1 \u2013 Risks and Mitigation Measures",fr:"Annexe 5.1 : Risques et mesures d\u2019att\u00e9nuation"},
+  "ann52-title":{en:"Annex 5.2 \u2013 Lessons Learned Register",fr:"Annexe 5.2 : Registre des enseignements tir\u00e9s"},
+  "ann53-title":{en:"Annex 5.3 \u2013 Issues and Actions for the Attention of Management",fr:"Annexe 5.3 : Points et actions \u00e0 porter \u00e0 l\u2019attention de la direction"},
+  "ann51-note":{en:"Rating scale \u2014 <strong>HIGH</strong>: almost certain to occur, very severe adverse impact. <strong>SUBSTANTIAL</strong>: likely to occur, severe impact. <strong>MODERATE</strong>: possibly occur, moderate impact. <strong>LOW</strong>: minor impact regardless of likelihood.",fr:"<strong>\u00c9LEV\u00c9</strong> : Quasiment certain de se produire, incidence n\u00e9gative tr\u00e8s importante sur l\u2019ODP. <strong>SUBSTANTIEL</strong> : Susceptible de se produire, incidence grave. <strong>MOD\u00c9R\u00c9</strong> : Incidence mod\u00e9r\u00e9e. <strong>FAIBLE</strong> : Incidence n\u00e9gative relativement n\u00e9gligeable."},
+  "annex-header":{en:"Annexes",fr:"Annexes au rapport principal"},
+  "submit-title":{en:"Ready to submit?",fr:"Pr\u00eat \u00e0 soumettre ?"},
+  "submit-sub":{en:"The QPR will be transmitted to the Bank's Task Manager for review and clearance.",fr:"Le QPR sera transmis au/\u00e0 la charg\u00e9(e) de projet de la Banque pour r\u00e9vision et approbation."},
+  "btn-export-lg":{en:"Export as Word (.docx)",fr:"Exporter en Word (.docx)"},
+  "btn-draft-lg":{en:"Save draft",fr:"Enregistrer brouillon"},
+  "btn-submit-lg":{en:"Submit QPR \u2192",fr:"Soumettre QPR \u2192"},
+  "A3-bullets":{en:"<li>Overall performance and timeliness in the delivery of project covenants against expectations.</li><li>For covenants still pending at the time of reporting, provide underlying reasons for delays and a revised delivery timeline. If no covenant is pending, indicate \u00abN/A\u00bb.</li><li>Fill in the table in Annex 1.1.</li>",fr:"<li>R\u00e9sum\u00e9 de l\u2019\u00e9valuation de la performance globale dans le respect des d\u00e9lais des clauses du projet eu \u00e9gard des attentes.</li><li>Pour les clauses encore en attente au moment de la r\u00e9daction du rapport, fournir les raisons sous-jacentes du retard ainsi que des d\u00e9lais r\u00e9vis\u00e9s. Si aucune clause n\u2019est en attente, indiquer \u00ab\u00a0S/O\u00a0\u00bb.</li><li>Remplir l\u2019Annexe 1.1.</li>"},
+  "A4-bullets":{en:"<li>Status of office establishment and staffing, including office set up and equipment, progress in recruitment (key positions filled, unfilled, being filled at the time of reporting).</li><li>Summary of key challenges (capacity gap and needs, turnover, etc.), actions taken and further proposals to address them.</li><li>Project Steering Committee including establishment, frequency of meetings, clearance of documents.</li>",fr:"<li>Mise \u00e0 jour sur l\u2019UGP et la dotation en personnel y compris la disponibilit\u00e9 des locaux et l\u2019achat d\u2019\u00e9quipements, les recrutements (positions cl\u00e9s pourvues, non encore pourvues ou en cours de recrutement au moment de l\u2019\u00e9laboration du rapport).</li><li>D\u00e9fis majeurs (capacit\u00e9, rotation du personnel, etc.), actions entreprises et propositions en vue de les adresser.</li><li>Comit\u00e9 de pilotage du projet (y compris mise en place, fr\u00e9quence de rencontres, approbation de documents).</li>"},
+  "A5-bullets":{en:"<li>Implementation status of agreed actions during the last reporting period and/or supervision mission \u2014 provide percentage of actions successfully implemented.</li><li>Overview of pending actions, justifications and the next steps.</li><li>Fill in the table in Annex 1.2.</li>",fr:"<li>R\u00e9sum\u00e9 de l\u2019\u00e9tat d\u2019avancement de la mise en \u0153uvre des actions convenues au cours de la derni\u00e8re p\u00e9riode de rapportage et/ou de la derni\u00e8re mission de supervision : indiquer la proportion d\u2019actions mises en \u0153uvre avec succ\u00e8s.</li><li>Actions en attente, justifications et prochaines \u00e9tapes.</li><li>Remplir l\u2019Annexe 1.2.</li>"},
+  "B1-bullets":{en:"<li>Progress in the implementation of the procurement plan (planned vs awarded), delays, reasons for delays and planned measures to recover the lost time.</li><li>Performance of procurement systems \u2014 Bank or Borrower procurement systems and whether there is a need to revise the relevant thresholds.</li><li>Summary of key challenges, including issues no-objections, capacity to implement procurement, stakeholders performance, etc.</li><li>Updated Procurement plan to accompany the report (annexed or separate attachment).</li>",fr:"<li>R\u00e9sum\u00e9 du progr\u00e8s global dans la mise en \u0153uvre du plan de passation des march\u00e9s (pr\u00e9vu vs attribu\u00e9), retards enregistr\u00e9s et mesures planifi\u00e9es pour recouvrer le temps perdu.</li><li>\u00c9valuation de la performance du syst\u00e8me de passation des march\u00e9s \u2013 Syst\u00e8mes de passation des march\u00e9s de la Banque ou de l\u2019Emprunteur.</li><li>Principaux d\u00e9fis li\u00e9s \u00e0 la passation des march\u00e9s, notamment les probl\u00e8mes de non-objection, la capacit\u00e9 \u00e0 mettre en \u0153uvre la passation de march\u00e9s, la performance des parties prenantes, etc.</li><li>Inclure le plan de passation de march\u00e9s mis \u00e0 jour.</li>"},
+  "B2-bullets":{en:"<li>Performance and progress of ongoing contracts with a focus on the top 3 contracts (in terms of size) per category (Works, Goods, Services).</li><li>Summary of key challenges regarding contract management, and proposals to address them.</li><li>Fill in the table in Annex 3.2 and/or 3.3 as relevant.</li>",fr:"<li>R\u00e9sum\u00e9 de la performance et des progr\u00e8s r\u00e9alis\u00e9s pour les contrats en cours, avec un accent sur les 3 principaux contrats (en termes de montant) et pour chacune des cat\u00e9gories (travaux, biens, services).</li><li>D\u00e9fis li\u00e9s \u00e0 la gestion de contrats, et suggestions en vue de les adresser.</li><li>Remplir les tableaux des Annexes 3.2 et/ou 3.3, le cas \u00e9ch\u00e9ant.</li>"},
+  "C1-bullets":{en:"<li>Summary of progress in the implementation of the disbursement plan (actual vs target).</li><li>Assessment of disbursement performance by source of financing for Bank approved financing.</li><li>Update on counterpart disbursement and co-financing disbursements as applicable.</li><li>Summary of the status of the special account including utilization (% utilization) and challenges.</li><li>Summary of key challenges, actions taken and the way forward.</li><li>The Interim Financial Report (IFR) shall accompany the report.</li><li>Fill in tables in Annex 4.1, 4.2 and 4.3.</li>",fr:"<li>R\u00e9sum\u00e9 du progr\u00e8s enregistr\u00e9 dans la mise en \u0153uvre du plan de d\u00e9caissement : (r\u00e9alis\u00e9 vs planifi\u00e9).</li><li>\u00c9valuation de la performance de d\u00e9caissement par source de financement (pour les financements approuv\u00e9s par la Banque).</li><li>Mise \u00e0 jour des d\u00e9caissements de contrepartie et les d\u00e9caissements de cofinancement, le cas \u00e9ch\u00e9ant.</li><li>Aper\u00e7u du compte sp\u00e9cial, y compris son utilisation, la situation de justification des fonds de roulement per\u00e7us et les d\u00e9fis rencontr\u00e9s.</li><li>D\u00e9fis li\u00e9s \u00e0 la gestion financi\u00e8re et aux d\u00e9caissements, actions entreprises et prochaines \u00e9tapes.</li><li>Inclure le Rapport financier int\u00e9rimaire (RFI).</li><li>Remplir les tableaux des Annexes 4.1, 4.2 et 4.3.</li>"},
+  "C2-bullets":{en:"<li>Audit reports status for audits due at the time of reporting. Provide reasons for overdue reports and a revised timeline to finalize them.</li><li>Summary of key issues raised by audit reports and recommendations proposed/implemented.</li><li>Fill in tables in Annexes 4.4 and 4.5.</li>",fr:"<li>Statut des rapports d\u2019audit dus au moment de la r\u00e9daction du rapport. Justifier les rapports en retard et fournir un calendrier r\u00e9vis\u00e9 de soumission.</li><li>R\u00e9sum\u00e9 des probl\u00e8mes cl\u00e9s relev\u00e9s dans les rapports d\u2019audit et la mise en \u0153uvre des recommandations propos\u00e9es.</li><li>Remplir le tableau de l\u2019Annexe 4.4 et 4.5.</li>"},
+  "D1-bullets":{en:"<li>Progress on key activities planned to date (provide a rough estimate of the overall physical progress if available from any contractor).</li><li>Key bottlenecks that have impacted on the implementation of activities, and actions undertaken to address them.</li><li>Change in scope and potential implications, as applicable.</li><li>Overall progress/trend to date towards annual targets as planned in the AWPB for each component, especially at Q4 report.</li><li>Fill in table in Annex 2.3.</li>",fr:"<li>Progr\u00e8s enregistr\u00e9s dans la mise en \u0153uvre des activit\u00e9s cl\u00e9s pr\u00e9vues jusqu\u2019\u00e0 date (fournir des estimations approximatives de l\u2019avancement physique, si elles sont disponibles).</li><li>Principaux goulots d\u2019\u00e9tranglement ayant impact\u00e9 la mise en \u0153uvre des activit\u00e9s, et actions entreprises pour les adresser.</li><li>Modification de la port\u00e9e et implications potentielles, le cas \u00e9ch\u00e9ant.</li><li>Progr\u00e8s global vers les objectifs annuels pr\u00e9vus dans le PTBA pour chaque composante du projet, en particulier pour le rapport du T4.</li><li>Remplir le tableau de l\u2019Annexe 2.3.</li>"},
+  "D2-bullets":{en:"<li>Progress towards achieving the main output indicators; proportion of output indicators that are achieved, on-track and off-track; and underlying reasons.</li><li>Likelihood of output contributing to achievement of outcomes; provide proportion of outcome indicators that are achieved, on-track and off-track. Ensure that Q4 report provides updates on outcome indicators.</li><li>Highlights of monitoring and evaluation challenges e.g. capacity, data availability, data collection issues, etc.</li><li>Fill in tables in Annexes 2.1 and 2.2.</li>",fr:"<li>Progr\u00e8s enregistr\u00e9s vers la r\u00e9alisation des principaux indicateurs de produit ; proportion d\u2019indicateurs de produit atteints, en bonne voie, en retard ; et raisons sous-jacentes.</li><li>Probabilit\u00e9 pour les produits de contribuer \u00e0 la r\u00e9alisation des effets ; proportion d\u2019indicateurs d\u2019effets atteints, en bonne voie, en retard. S\u2019assurer que le rapport de T4 mette un accent particulier sur le rapport sur les effets.</li><li>Relever les d\u00e9fis li\u00e9s au suivi-\u00e9valuation \u2014 capacit\u00e9, disponibilit\u00e9 des donn\u00e9es, difficult\u00e9s de collecte de donn\u00e9es, etc.</li><li>Remplir les Annexes 2.1 et 2.2.</li>"},
+  "D3-bullets":{en:"<li>Summary of key upcoming activities for the next Quarter including activities that are still ongoing from previous quarters with updated timelines.</li><li>Fill in table in Annex 2.4.</li>",fr:"<li>R\u00e9sum\u00e9 des principales activit\u00e9s du prochain trimestre, y compris les activit\u00e9s encore en cours d\u2019ex\u00e9cution des trimestres pr\u00e9c\u00e9dents, avec les \u00e9ch\u00e9anciers mis \u00e0 jour au besoin.</li><li>Remplir le tableau de l\u2019Annexe 2.4.</li>"},
+  "E-bullets":{en:"<li>Update the list of E&amp;S safeguard documents prepared and published by the Borrower and the Bank.</li><li>Summary on progress made in the implementation of Environmental &amp; Social Management Plan (ESMP), Resettlement Action Plan (RAP), etc.</li><li>Assessment of the overall progress in meeting E&amp;S obligations as defined in the financing agreement.</li>",fr:"<li>Mettre \u00e0 jour la liste des documents de sauvegardes E&amp;S pr\u00e9par\u00e9s et publi\u00e9s par l\u2019Emprunteur et la Banque.</li><li>Progr\u00e8s dans la mise en \u0153uvre du Plan de gestion environnementale et sociale (PGES), du Plan d\u2019action de r\u00e9installation (PAR), etc.</li><li>\u00c9valuation des progr\u00e8s globaux accomplis dans le respect des obligations E&amp;S d\u00e9finies dans l\u2019accord de financement.</li>"},
+  "F-bullets":{en:"<li>Assessment of progress in mainstreaming Gender \u2014 collection of disaggregated data, implementation of the Gender action plan (as applicable).</li><li>Assessment of jobs, skills and youth mainstreaming for relevant projects including collection of disaggregated data.</li><li>Assessment of fragility and climate change aspects (as applicable).</li>",fr:"<li>Progr\u00e8s sur l\u2019int\u00e9gration de la dimension genre : collecte de donn\u00e9es d\u00e9sagr\u00e9g\u00e9es selon le genre, mise en \u0153uvre du plan d\u2019action pour l\u2019\u00e9galit\u00e9 des sexes (le cas \u00e9ch\u00e9ant).</li><li>\u00c9valuation de l\u2019int\u00e9gration des emplois, des comp\u00e9tences et des jeunes dans les projets pertinents, y compris la collecte de donn\u00e9es sur les emplois et les jeunes.</li><li>\u00c9valuation des aspects li\u00e9s \u00e0 la fragilit\u00e9 ou au changement climatique (le cas \u00e9ch\u00e9ant).</li>"},
+  "G-bullets":{en:"<li>Summary of key emerging risks and proposed mitigation measures: socio-economic/political context, procurement, E&amp;S, disbursement, audits, etc.</li><li>Fill in detailed risks in Annex 5.1.</li>",fr:"<li>R\u00e9sum\u00e9 des principaux risques \u00e9mergents et des mesures d\u2019att\u00e9nuation propos\u00e9es : passation de march\u00e9s, E&amp;S, d\u00e9caissements, audits, etc.</li><li>Remplir l\u2019Annexe 5.1.</li>"},
+  "H-bullets":{en:"<li>Summary of key issues and actions for the attention of the Bank's task team and management \u2014 recap of key issues raised across the report.</li><li>Fill in detailed actions in Annex 5.3.</li>",fr:"<li>R\u00e9sum\u00e9 des principaux probl\u00e8mes et actions port\u00e9s \u00e0 l\u2019attention de l\u2019\u00e9quipe de projet et de la direction de la Banque \u2014 r\u00e9capitulatif des principaux probl\u00e8mes mentionn\u00e9s \u00e0 travers le rapport.</li><li>Remplir le tableau de l\u2019Annexe 5.3.</li>"}
+};
+
+function applyTranslations(){
+  // Simple key→element replacements
+  Object.keys(TR.en).forEach(function(k){
+    var el=document.getElementById(k);if(!el)return;
+    var tag=el.tagName.toLowerCase();
+    if(tag==='input'||tag==='textarea') el.placeholder=t(k);
+    else el.innerHTML=t(k);
+  });
+  // Rich bilingual content (section titles, field labels, bullet lists)
+  Object.keys(BULLETS).forEach(function(k){
+    var el=document.getElementById(k);if(!el)return;
+    var val=BULLETS[k][currentLang]||BULLETS[k].en;
+    if(val!==undefined&&val!=='') el.innerHTML=val;
+  });
+  // Hint chips
+  var hintEl=document.getElementById('lk-hint');
+  if(hintEl){
+    var codes=['P-MR-AAC-011','P-SN-AAC-023','P-ML-AAC-007'];
+    hintEl.innerHTML=(currentLang==='fr'?'Essayez : ':'Try: ')+codes.map(function(c){return '<span data-code="'+c+'" class="hint-code" style="color:var(--green-700);cursor:pointer;font-weight:500">'+c+'</span>';}).join(' · ');
+    hintEl.querySelectorAll('.hint-code').forEach(function(s){s.onclick=function(){fillCode(s.getAttribute('data-code'));};});
+  }
+  // Rebuild annex widgets when lang changes if form is open (refreshes column headers)
+  if(currentProject&&document.getElementById('screen-form').style.display!=='none'){
+    buildAllAnnexWidgets();
+  }
+}
+
+// ═══════════════════════════════════════
+// LOOKUP
+// ═══════════════════════════════════════
+function onCodeInput(v){document.getElementById('code-input').classList.remove('found','not-found');document.getElementById('project-preview').style.display='none';document.getElementById('error-msg').style.display='none';}
+function fillCode(c){document.getElementById('code-input').value=c;onCodeInput(c);lookupProject();}
+function lookupProject(){
+  var code=document.getElementById('code-input').value.trim().toUpperCase();if(!code)return;
+  var btn=document.getElementById('btn-lookup');btn.disabled=true;
+  document.getElementById('btn-text').textContent=t('btn-loading');
+  document.getElementById('spinner').style.display='block';
+  document.getElementById('error-msg').style.display='none';
+  document.getElementById('project-preview').style.display='none';
+  setTimeout(function(){
+    btn.disabled=false;document.getElementById('btn-text').textContent=t('btn-text');document.getElementById('spinner').style.display='none';
+    var p=SAP_DB[code];
+    if(p){document.getElementById('code-input').classList.add('found');showPreview(p);}
+    else{document.getElementById('code-input').classList.add('not-found');var e=document.getElementById('error-msg');e.textContent=t('error-msg');e.style.display='block';}
+  },1100);
+}
+function showPreview(p){
+  currentProject=p;
+  document.getElementById('prev-name').textContent=p.title;
+  document.getElementById('prev-code').textContent=p.code+' · '+p.country;
+  var totalA=p.sources.reduce(function(a,s){return a+s.orig;},0);
+  var totalD=p.sources.reduce(function(a,s){return a+(s.orig*s.pct/100);},0);
+  var pct=((totalD/totalA)*100).toFixed(1);
+  document.getElementById('prev-grid').innerHTML=[
+    {l:currentLang==='fr'?'Pays':'Country',v:p.country},
+    {l:'Sector',v:p.sector},
+    {l:currentLang==='fr'?'Total approuvé':'Total Approved',v:(totalA/1e6).toFixed(1)+' M UAC'},
+    {l:currentLang==='fr'?'Décaissé':'Disbursed',v:pct+'%'}
+  ].map(function(f){return '<div class="preview-field"><div class="preview-field-label">'+f.l+'</div><div class="preview-field-val">'+f.v+'</div></div>';}).join('');
+  document.getElementById('project-preview').style.display='block';
+  document.getElementById('btn-open-form').textContent=t('btn-open-form');
+}
+function openForm(){
+  if(!currentProject)return;
+  populateForm(currentProject);
+  document.getElementById('screen-lookup').style.display='none';
+  document.getElementById('screen-form').style.display='block';
+  window.scrollTo(0,0);
+  setTimeout(function(){buildAllAnnexWidgets();initPersonTables();},80);
+}
+function backToLookup(){
+  document.getElementById('screen-form').style.display='none';
+  document.getElementById('screen-lookup').style.display='flex';
+  document.getElementById('code-input').value='';
+  document.getElementById('code-input').classList.remove('found','not-found');
+  document.getElementById('project-preview').style.display='none';
+}
+
+// ═══════════════════════════════════════
+// POPULATE
+// ═══════════════════════════════════════
+function populateForm(p){
+  document.getElementById('sb-code').textContent=p.code;
+  document.getElementById('sb-name').textContent=p.title;
+  document.getElementById('tb-rpt').textContent=p.code+' · '+p.country;
+  document.getElementById('f-projname').value=p.title;
+  document.getElementById('f-sapcode').value=p.code;
+  document.getElementById('f-country').value=p.country;
+  document.getElementById('f-sector').value=p.sector;
+  document.getElementById('f-exagency').value=p.exagency;
+  document.getElementById('f-iagency').value=p.iagency;
+  document.getElementById('f-pdo').value=p.pdo;
+  document.getElementById('f-components').value=p.components;
+  document.getElementById('f-approval').value=p.approval;
+  document.getElementById('f-initcomp').value=p.initcomp;
+  document.getElementById('f-elapse').value=p.elapse;
+  document.getElementById('elapse-bar').style.width=p.elapse+'%';
+  document.getElementById('f-disbrate').value=p.disbrate;
+  // Banner
+  var totalA=p.sources.reduce(function(a,s){return a+s.orig;},0);
+  document.getElementById('banner-fields').innerHTML=[
+    '<div class="bf"><span>Code </span><strong>'+p.code+'</strong></div>',
+    '<div class="bf"><span>Country </span><strong>'+p.country+'</strong></div>',
+    '<div class="bf"><span>Sector </span><strong>'+p.sector+'</strong></div>',
+    '<div class="bf"><span>Total Approved </span><strong>'+(totalA/1e6).toFixed(1)+' M UAC</strong></div>'
+  ].join('');
+  buildFinPlanTable(p);
+  buildFinCards(p);
+  progVal=15;updateProg();
+}
+function buildFinPlanTable(p){
+  var tbody=document.getElementById('fin-plan-tbody');tbody.innerHTML='';
+  p.sources.forEach(function(s){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td><input type="text" value="'+s.src+'"></td>'+
+      '<td><input type="number" value="'+s.orig+'" style="width:110px"></td>'+
+      '<td><input type="number" value="'+s.addl+'" style="width:90px"></td>'+
+      '<td><input type="number" value="'+s.total+'" style="width:110px"></td>'+
+      '<td style="white-space:nowrap"><input type="number" value="'+s.pct+'" style="width:60px"> %</td>'+
+      '<td></td>';
+    tbody.appendChild(tr);
+  });
+  var tot=document.createElement('tr');tot.style.cssText='background:var(--green-50);font-weight:600';
+  var totalA=p.sources.reduce(function(a,s){return a+s.orig;},0);
+  var avgPct=(p.sources.reduce(function(a,s){return a+(s.orig*s.pct/100);},0)/totalA*100).toFixed(1);
+  tot.innerHTML='<td><strong>TOTAL</strong></td><td><strong>'+totalA.toLocaleString()+'</strong></td><td>—</td><td><strong>'+totalA.toLocaleString()+'</strong></td><td><strong>'+avgPct+'%</strong></td><td></td>';
+  tbody.appendChild(tot);
+}
+function addFinRow(){
+  var tbody=document.getElementById('fin-plan-tbody');var last=tbody.lastElementChild;
+  var tr=document.createElement('tr');
+  tr.innerHTML='<td><input type="text" placeholder="Source name…"></td><td><input type="number" style="width:110px" placeholder="0"></td><td><input type="number" style="width:90px" placeholder="0"></td><td><input type="number" style="width:110px" placeholder="0"></td><td><input type="number" style="width:60px" placeholder="0"> %</td><td><button onclick="this.closest(\'tr\').remove()" style="color:var(--red-600);background:none;border:none;cursor:pointer;font-size:13px">✕</button></td>';
+  tbody.insertBefore(tr,last);
+}
+function buildFinCards(p){
+  var totalA=p.sources.reduce(function(a,s){return a+s.orig;},0);
+  var totalD=p.sources.reduce(function(a,s){return a+(s.orig*s.pct/100);},0);
+  var pctAll=((totalD/totalA)*100).toFixed(1);
+  document.getElementById('fin-cards').innerHTML=p.sources.slice(0,2).map(function(s){
+    return '<div class="fin-card"><div class="fin-lbl">'+s.src+'</div><div class="fin-amt">'+(s.orig*s.pct/100).toLocaleString()+'<span style="font-size:11px;color:var(--gray-500)"> UAC</span></div><div class="fin-sub">Approved: '+s.orig.toLocaleString()+' UAC</div><div class="fin-bar"><div class="fin-bar-fill" style="width:'+s.pct+'%"></div></div><div class="fin-pct"><span class="v">'+s.pct+'%</span><span class="l">disbursed</span></div></div>';
+  }).join('')+
+  '<div class="fin-card" style="border-color:var(--green-200);background:var(--green-50)"><div class="fin-lbl">Total Disbursed</div><div class="fin-amt" style="color:var(--green-700)">'+Math.round(totalD).toLocaleString()+'<span style="font-size:11px"> UAC</span></div><div class="fin-sub">Approved: '+totalA.toLocaleString()+' UAC</div><div class="fin-bar"><div class="fin-bar-fill" style="width:'+pctAll+'%"></div></div><div class="fin-pct"><span class="v">'+pctAll+'%</span><span class="l">overall</span></div></div>';
+}
+
+// ═══════════════════════════════════════
+// ANNEX WIDGET ENGINE
+// ═══════════════════════════════════════
+var COL_REG={};
+var _upCount=0;
+
+function buildAllAnnexWidgets(){
+  _upCount=0; // reset so tabs work correctly even if called multiple times
+  var isFr=currentLang==='fr';
+  makeWidget('ann11-widget',mkTbl('ann11',[
+    {h:isFr?'Clauses du projet (en attente)':'Project Covenant (pending)',w:'22%',ph:isFr?'Décrire la clause…':'Describe covenant…'},
+    {h:isFr?'Type':'Type',w:'15%',type:'select',opts:isFr?['Entrée en vigueur','Premier décaissement','Engagement']:['Entry into Force','1st Disbursement','Undertaking']},
+    {h:isFr?'Statut':'Status',w:'13%',type:'select',opts:isFr?['En attente d’initiation','En cours','Finalisé']:['Not initiated','In progress','Finalized']},
+    {h:isFr?'Raison du retard':'Reason for Delay',w:'26%',type:'textarea',ph:isFr?'Si retard, expliquer…':'If delayed, explain…'},
+    {h:isFr?'Délai révisé':'Revised Deadline',w:'14%',type:'date'}
+  ],2));
+  makeWidget('ann12-widget',mkTbl('ann12',[
+    {h:isFr?'Aspects importants':'Key Issue',w:'18%',ph:isFr?'Titre du problème…':'Issue title…'},
+    {h:isFr?'Actions correctives proposées':'Proposed Corrective Action',w:'22%',type:'textarea',ph:isFr?'Action proposée…':'Action proposed…'},
+    {h:isFr?'Responsable':'Responsible',w:'13%',ph:isFr?'Équipe / Personne':'Team / Person'},
+    {h:isFr?'Délai':'Deadline',w:'10%',type:'date'},
+    {h:isFr?'Statut':'Status',w:'12%',type:'select',opts:isFr?['Non initié','En cours','Finalisé']:['Not initiated','In progress','Finalized']},
+    {h:isFr?'Commentaires':'Comments',w:'19%',type:'textarea',ph:isFr?'Notes…':'Notes…'}
+  ],2));
+  makeWidget('ann21-widget',mkTbl('ann21',[
+    {h:isFr?'Indicateurs d’effets (tels que spécifiés dans le CR)':'Outcome Indicator (as in RF)',w:'26%',ph:isFr?'Nom de l’indicateur…':'Indicator name & reference…'},
+    {h:isFr?'Valeur de référence':'Baseline Value',w:'11%',ph:'0'},
+    {h:isFr?'Valeur la plus récente':'Most Recent Value',w:'13%',ph:isFr?'Valeur actuelle':'Current value'},
+    {h:isFr?'Cible finale':'End Target',w:'11%',ph:isFr?'Cible':'Target'},
+    {h:isFr?'Évaluation (en bonne voie pour atteindre les cibles annuelles et finales ?)':'Assessment (on track to reach annual & end targets?)',w:'33%',type:'textarea',ph:isFr?'Décrire les progrès, justifier si pas en bonne voie…':'Describe progress, justify if not on track…'}
+  ],3));
+  makeWidget('ann22-widget',mkTbl('ann22',[
+    {h:isFr?'Indicateurs de produit (tels que spécifiés dans le CR/plan de suivi)':'Output Indicator (as in RF)',w:'24%',ph:isFr?'Nom de l’indicateur…':'Indicator name…'},
+    {h:isFr?'Valeur la plus récente':'Most Recent Value',w:'13%',ph:isFr?'Actuel':'Current'},
+    {h:isFr?'Cible annuelle':'Annual Target',w:'11%',ph:isFr?'Annuelle':'Annual'},
+    {h:isFr?'Cible finale':'End Target',w:'10%',ph:isFr?'Finale':'Final'},
+    {h:isFr?'Évaluation (en bonne voie pour atteindre les cibles annuelles ou finales ?)':'Assessment (on track to reach annual & end targets?)',w:'36%',type:'textarea',ph:isFr?'En bonne voie ? Justifier si pas en bonne voie…':'On track? Provide detailed justification if off-track…'}
+  ],3));
+  makeWidget('ann23-widget',mkTbl('ann23',[
+    {h:isFr?'Composante':'Component',w:'12%',ph:'A / B…'},
+    {h:isFr?'Activité':'Activity',w:'26%',ph:isFr?'Description de l’activité…':'Activity description…'},
+    {h:isFr?'Délai':'Deadline',w:'10%',type:'date'},
+    {h:isFr?'Statut':'Status',w:'13%',type:'select',opts:isFr?['Non initié','En cours','Finalisé']:['Not started','In progress','Finalized']},
+    {h:isFr?'Commentaires (taux de réalisation ; justifier si retard)':'Comments (% achievement; justify if delayed)',w:'33%',type:'textarea',ph:isFr?'Indiquer le % réalisé, expliquer les retards et mesures correctives…':'Indicate % achieved, explain delays and corrective measures…'}
+  ],4));
+  makeWidget('ann24-widget',mkTbl('ann24',[
+    {h:isFr?'Composante':'Component',w:'14%',ph:'A / B…'},
+    {h:isFr?'Activité (inclure les activités en attente des trimestres précédents)':'Activity (include pending from previous quarters)',w:'50%',ph:isFr?'Description de l’activité…':'Activity description…'},
+    {h:isFr?'Délai':'Deadline',w:'13%',type:'date'}
+  ],4));
+  makeWidget('ann31-widget',mkTbl('ann31',[
+    {h:isFr?'Biens, Travaux ou Services à acquérir':'Goods, Works or Services',w:'28%',ph:isFr?'Description…':'Description…'},
+    {h:isFr?'Statut comparé au plan de passation de marchés':'Status vs Procurement Plan',w:'15%',type:'select',opts:isFr?['En bonne voie','En retard','Très en retard']:['On track','Delayed','Significantly delayed']},
+    {h:isFr?'Si contrat signé (temps écoulé entre l’appel d’offres et la signature)':'Time (EOI/Bids to Contract Signature)',w:'18%',ph:isFr?'ex. 45 jours':'e.g. 45 days'},
+    {h:isFr?'Commentaires (défis, actions requises de la Banque)':'Comments (challenges, actions requested from Bank)',w:'33%',type:'textarea',ph:isFr?'Expliquer les retards et actions correctives…':'Explain delays and corrective actions…'}
+  ],3));
+  makeWidget('ann32-widget',mkContractsTbl('ann32'));
+  makeWidget('ann33-widget',mkContractsTbl('ann33'));
+  // Update all "Guidance" labels to correct lang
+  ['A3-lbl','A4-lbl','A5-lbl','B1-lbl','B2-lbl','C1-lbl','C2-lbl','D1-lbl','D2-lbl','D3-lbl','E-lbl','F-lbl','G-lbl','H-lbl'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.textContent=currentLang==='fr'?'Orientations':'Guidance';
+  });
+  makeWidget('ann41-widget',mkTbl('ann41',[
+    {h:'WA Number & Amount',w:'22%',ph:'No. …'},
+    {h:'Actual Time Elapsed Since Disbursement',w:'26%',ph:'e.g. 3 months'},
+    {h:'Amount Justified',w:'24%',ph:'Amount in UA'},
+    {h:'% Justified',w:'16%',ph:'%'}
+  ],2));
+  makeWidget('ann42-widget',mkReceiptsTable());
+  makeWidget('ann43-widget',mkTbl('ann43',[
+    {h:'Date',w:'10%',type:'date'},
+    {h:'Payee',w:'18%',ph:'Supplier / Contractor'},
+    {h:'DP No.',w:'8%',ph:'DP-XXX'},
+    {h:'Currency',w:'8%',ph:'USD…'},
+    {h:'Amount',w:'12%',ph:'0.00'},
+    {h:'Conversion Rate',w:'12%',ph:'1.00'},
+    {h:'Amount in Reporting Currency',w:'14%',ph:'0.00'},
+    {h:'Comment',w:'12%',ph:'Notes…'}
+  ],3));
+  makeWidget('ann44-widget',mkTbl('ann44',[
+    {h:'Audit Report (by year)',w:'18%',ph:'e.g. FY 2024'},
+    {h:'Status',w:'15%',type:'select',opts:['Submitted','Pending initiation','In progress','Overdue']},
+    {h:'Type of Auditor',w:'16%',type:'select',opts:['Government','Private firm']},
+    {h:'Comments (expected submission date)',w:'45%',type:'textarea',ph:'Reasons for delay, expected date…'}
+  ],2));
+  makeWidget('ann45-widget',mkTbl('ann45',[
+    {h:'Key Issue (from audit report / SNFI memo)',w:'26%',ph:'Issue description…'},
+    {h:'Corrective Measures',w:'30%',type:'textarea',ph:'Action taken or planned…'},
+    {h:'Status',w:'14%',type:'select',opts:['Pending initiation','In progress','Finalized']},
+    {h:'Comments',w:'24%',type:'textarea',ph:'Additional notes…'}
+  ],2));
+  makeWidget('ann51-widget',mkTbl('ann51',[
+    {h:isFr?'Risques':'Risk',w:'24%',type:'textarea',ph:isFr?'Décrire le risque…':'Describe the risk…'},
+    {h:isFr?'Catégorie de risque':'Risk Area',w:'14%',type:'select',opts:isFr?['Résultats','Passation de marchés','Gestion financière','E&S','Aspects transversaux','Autres']:['Results','Procurement','Financial Management','E&S','Cross-cutting','Other']},
+    {h:isFr?'Évaluation du risque':'Rating',w:'12%',type:'select',opts:isFr?['ÉLEVÉ','SUBSTANTIEL','MODÉRÉ','FAIBLE']:['HIGH','SUBSTANTIAL','MODERATE','LOW']},
+    {h:isFr?'Mesures d’atténuation':'Mitigation Measure',w:'30%',type:'textarea',ph:isFr?'Actions d’atténuation proposées…':'Proposed mitigation actions…'},
+    {h:isFr?'Responsable':'Responsible',w:'14%',ph:isFr?'Équipe / Personne':'Team / Person'}
+  ],2));
+  makeWidget('ann52-widget',mkTbl('ann52',[
+    {h:isFr?'Positif / Négatif':'Positive / Negative',w:'13%',type:'select',opts:isFr?['Positif','Négatif']:['Positive','Negative']},
+    {h:isFr?'Décrire de façon succincte ce qui s’est passé':'What happened (succinctly)',w:'28%',type:'textarea',ph:isFr?'Brève description…':'Brief description of what happened…'},
+    {h:isFr?'Quel a été l’impact ?':'Impact',w:'28%',type:'textarea',ph:isFr?'Quelle a été la conséquence ?':'What was the consequence?'},
+    {h:isFr?'Comment ceci devrait influencer la suite du projet ?':'Way Forward',w:'25%',type:'textarea',ph:isFr?'Action recommandée…':'Recommended action or change…'}
+  ],2));
+  makeWidget('ann53-widget',mkTbl('ann53',[
+    {h:isFr?'Points clés':'Key Issue',w:'28%',ph:isFr?'Titre du problème…':'Issue title…'},
+    {h:isFr?'Actions correctives suggérées':'Proposed Corrective Action',w:'34%',type:'textarea',ph:isFr?'Action à entreprendre…':'Action to be taken…'},
+    {h:isFr?'Responsable':'Responsible',w:'18%',ph:isFr?'Équipe / Personne':'Team / Person'},
+    {h:isFr?'Délai':'Deadline',w:'13%',type:'date'}
+  ],2));
+}
+
+function makeWidget(containerId, tableHtml){
+  var c=document.getElementById(containerId);if(!c)return;
+  var uid=++_upCount;
+  c.innerHTML='<div class="annex-widget">'+
+    '<div class="annex-tabs">'+
+      '<button class="annex-tab active" onclick="switchTab(this)">'+
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="1" y="1" width="10" height="2" rx="1" fill="currentColor"/><rect x="1" y="5" width="10" height="2" rx="1" fill="currentColor"/><rect x="1" y="9" width="7" height="2" rx="1" fill="currentColor"/></svg> '+
+        t('tab-form')+'</button>'+
+      '<button class="annex-tab" onclick="switchTab(this)">'+
+        '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v7M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 9v1.5a.5.5 0 00.5.5h9a.5.5 0 00.5-.5V9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg> '+
+        t('tab-upload')+'</button>'+
+    '</div>'+
+    '<div class="annex-panel active">'+tableHtml+'</div>'+
+    '<div class="annex-panel">'+mkUploadZone('uz'+uid)+'</div>'+
+  '</div>';
+}
+function switchTab(btn){
+  var w=btn.closest('.annex-widget');
+  var tabs=w.querySelectorAll('.annex-tab');
+  var panels=w.querySelectorAll('.annex-panel');
+  var idx=Array.from(tabs).indexOf(btn);
+  tabs.forEach(function(b,i){b.classList.toggle('active',i===idx);});
+  panels.forEach(function(p,i){p.classList.toggle('active',i===idx);});
+}
+function mkUploadZone(uid){
+  return '<div class="upload-zone" onclick="document.getElementById(\''+uid+'\').click()" '+
+    'ondragover="this.classList.add(\'drag-on\');event.preventDefault()" '+
+    'ondragleave="this.classList.remove(\'drag-on\')" '+
+    'ondrop="handleDrop(event,\''+uid+'\')" style="margin:14px">'+
+    '<input type="file" id="'+uid+'" style="display:none" accept=".xlsx,.csv,.pdf,.docx" onchange="handleFile(this,\'fp-'+uid+'\')">'+
+    '<div class="upload-icon"><svg width="22" height="22" viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="var(--gray-400)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 14v2a1 1 0 001 1h12a1 1 0 001-1v-2" stroke="var(--gray-400)" stroke-width="1.6" stroke-linecap="round"/></svg></div>'+
+    '<div class="upload-title">'+t('upload-title')+'</div>'+
+    '<div class="upload-sub">'+t('upload-sub')+'</div>'+
+  '</div>'+
+  '<div id="fp-'+uid+'" style="display:none;margin:0 14px 12px"></div>';
+}
+function handleFile(input, previewId){
+  if(!input.files||!input.files[0])return;
+  var f=input.files[0];showFilePreview(f,previewId);
+}
+function handleDrop(e,uid){
+  e.preventDefault();e.currentTarget.classList.remove('drag-on');
+  if(!e.dataTransfer.files||!e.dataTransfer.files[0])return;
+  showFilePreview(e.dataTransfer.files[0],'fp-'+uid);
+}
+function showFilePreview(f,previewId){
+  var size=f.size>1048576?((f.size/1048576).toFixed(1)+' MB'):((f.size/1024).toFixed(0)+' KB');
+  var ext=f.name.split('.').pop().toUpperCase();
+  var icons={XLSX:'📊',CSV:'📋',PDF:'📄',DOCX:'📝'};
+  var el=document.getElementById(previewId);if(!el)return;
+  el.style.display='block';
+  var btn=document.createElement('button');
+  btn.className='file-remove';
+  btn.textContent='Remove';
+  btn.onclick=function(){el.style.display='none';};
+  var icon=document.createElement('div');
+  icon.className='file-preview-icon';
+  icon.innerHTML='<span style="font-size:15px;color:white">'+(icons[ext]||'📎')+'</span>';
+  var info=document.createElement('div');
+  info.style.flex='1';
+  info.innerHTML='<div class="file-preview-name">'+f.name+'</div><div class="file-preview-size">'+size+'</div>';
+  var wrap=document.createElement('div');
+  wrap.className='file-preview-wrap';
+  wrap.appendChild(icon);
+  wrap.appendChild(info);
+  wrap.appendChild(btn);
+  el.innerHTML='';
+  el.appendChild(wrap);
+  showToast(t('toast-upload'));
+}
+
+function mkTbl(id, cols, defaultRows){
+  COL_REG[id]=cols;
+  var hdr=cols.map(function(c){return '<th style="width:'+(c.w||'auto')+'">'+c.h+'</th>';}).join('');
+  var rows='';for(var i=0;i<defaultRows;i++)rows+=mkRow(cols);
+  return '<div class="tbl-scroll" style="padding:12px 14px 0">'+
+    '<table class="ind-table" id="tbl-'+id+'" style="min-width:560px">'+
+    '<thead><tr>'+hdr+'<th style="width:26px"></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<button class="add-row-btn" onclick="addRow(\''+id+'\')">'+t('add-row')+'</button>';
+}
+function mkRow(cols){
+  return '<tr>'+cols.map(function(c){
+    var inp;
+    if(c.type==='select') inp='<select style="width:100%">'+[''].concat(c.opts||[]).map(function(o){return '<option>'+o+'</option>';}).join('')+'</select>';
+    else if(c.type==='textarea') inp='<textarea style="min-height:38px;width:100%;resize:vertical" placeholder="'+(c.ph||'')+'"></textarea>';
+    else if(c.type==='date') inp='<input type="date" style="width:100%">';
+    else inp='<input type="text" style="width:100%" placeholder="'+(c.ph||'')+'">';
+    return '<td>'+inp+'</td>';
+  }).join('')+'<td><button onclick="this.closest(\'tr\').remove()" style="color:var(--red-600);background:none;border:none;cursor:pointer;font-size:14px;padding:2px 4px;line-height:1" title="Remove">✕</button></td></tr>';
+}
+function addRow(id){
+  var cols=COL_REG[id];if(!cols)return;
+  var tbody=document.querySelector('#tbl-'+id+' tbody');if(!tbody)return;
+  var tr=document.createElement('tr');
+  tr.innerHTML=mkRow(cols).replace(/^<tr>/,'').replace(/<\/tr>$/,'');
+  tbody.appendChild(tr);
+  var first=tr.querySelector('input,select,textarea');if(first)first.focus();
+}
+function mkContractsTbl(id){
+  var cols=[
+    {h:'Contract Title',w:'14%',ph:'Contract name…'},
+    {h:'Contractor',w:'13%',ph:'Firm name'},
+    {h:'Category',w:'8%',type:'select',opts:['Works','Goods','Services']},
+    {h:'Type',w:'9%',type:'select',opts:['Lump Sum','Time-Based','Ad-measurement']},
+    {h:'Payment',w:'6%',type:'select',opts:['DP','RF']},
+    {h:'Contract Amount',w:'10%',ph:'Currency + amount'},
+    {h:'Amendments',w:'7%',ph:'None'},
+    {h:'Revised Amount',w:'9%',ph:'—'},
+    {h:'Amount Paid',w:'8%',ph:'—'},
+    {h:'%',w:'5%',ph:'0'},
+    {h:'End Date',w:'8%',type:'date'}
+  ];
+  COL_REG[id]=cols;
+  var hdr=cols.map(function(c){return '<th style="width:'+(c.w||'auto')+'">'+c.h+'</th>';}).join('');
+  var rows=mkRow(cols)+mkRow(cols);
+  return '<div class="tbl-scroll" style="padding:12px 14px 0">'+
+    '<table class="ind-table" id="tbl-'+id+'" style="min-width:900px">'+
+    '<thead><tr>'+hdr+'<th style="width:26px"></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<button class="add-row-btn" onclick="addRow(\''+id+'\')">'+t('add-row')+'</button>';
+}
+function mkReceiptsTable(){
+  var rows=['Opening Balances','— Direct Payments','— Special Account','— Counterpart Funds / Partners',
+    'TOTAL RECEIPTS','Component 1','1.1','1.2','1.3','Sub-Total: Component 1',
+    'Component 2','2.1','2.2','Sub-Total: Component 2',
+    'Component 3','3.1','Sub-Total: Component 3','TOTAL',
+    'Excess of Receipts over Expenditure','Balances on the Special Account'];
+  var head='<thead><tr><th>Particulars</th><th>Total Budget</th><th>Cumulative (Prior Period)</th><th>This Quarter</th><th>Cumulative Total</th><th>Variance</th><th>Comments</th></tr></thead>';
+  var body=rows.map(function(r){
+    var bold=r.startsWith('TOTAL')||r.startsWith('Component')||r.startsWith('Opening')||r.startsWith('Excess')||r.startsWith('Balance')||r.startsWith('Sub-Total');
+    var bg=bold?'background:var(--gray-50)':'';
+    return '<tr style="'+bg+'">'+
+      '<td style="font-weight:'+(bold?'600':'400')+'">'+r+'</td>'+
+      '<td><input type="number" style="width:100%" placeholder="0"></td>'+
+      '<td><input type="number" style="width:100%" placeholder="0"></td>'+
+      '<td><input type="number" style="width:100%" placeholder="0"></td>'+
+      '<td><input type="number" style="width:100%" placeholder="0"></td>'+
+      '<td><input type="number" style="width:100%" placeholder="0"></td>'+
+      '<td><input type="text" style="width:100%" placeholder="Notes…"></td>'+
+    '</tr>';
+  }).join('');
+  return '<div class="tbl-scroll" style="padding:12px 14px"><table class="ind-table" style="min-width:720px">'+head+'<tbody>'+body+'</tbody></table></div>';
+}
+
+// ═══════════════════════════════════════
+// PERSON TABLES
+// ═══════════════════════════════════════
+function initPersonTables(){
+  ['prep-tbody','rev-tbody','clr-tbody'].forEach(function(id){
+    var tb=document.getElementById(id);if(!tb)return;
+    tb.innerHTML='';
+    var cols=id==='prep-tbody'?2:4;
+    addPersonRow(id,cols);addPersonRow(id,cols);
+  });
+}
+function addPersonRow(id,cols){
+  var tbody=document.getElementById(id);if(!tbody)return;
+  var tr=document.createElement('tr');
+  if(cols===2){
+    tr.innerHTML='<td><input type="text" style="width:100%" placeholder="Full name…"></td>'+
+      '<td><input type="text" style="width:100%" placeholder="Role / Position…"></td>'+
+      '<td><button onclick="this.closest(\'tr\').remove()" style="color:var(--red-600);background:none;border:none;cursor:pointer;font-size:14px">✕</button></td>';
+  } else {
+    tr.innerHTML='<td><input type="text" style="width:100%" placeholder="Full name…"></td>'+
+      '<td><input type="text" style="width:100%" placeholder="Role…"></td>'+
+      '<td><input type="date" style="width:100%"></td>'+
+      '<td><textarea style="min-height:36px;width:100%;resize:vertical;font-size:11.5px;font-family:var(--font-b);border:1px solid var(--gray-200);border-radius:var(--r-sm);padding:5px 7px" placeholder="Comments…"></textarea></td>'+
+      '<td><button onclick="this.closest(\'tr\').remove()" style="color:var(--red-600);background:none;border:none;cursor:pointer;font-size:14px">✕</button></td>';
+  }
+  tbody.appendChild(tr);
+}
+
+// ═══════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════
+function toggleSec(hdr){
+  var body=hdr.nextElementSibling;var ch=hdr.querySelector('.chevron');
+  if(body.style.display==='none'){body.style.display='';ch.classList.add('open');hdr.classList.remove('collapsed');}
+  else{body.style.display='none';ch.classList.remove('open');hdr.classList.add('collapsed');}
+}
+function navTo(id,btn){
+  var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  document.querySelectorAll('#screen-form .nav-item').forEach(function(i){i.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+}
+function goToAnnex(panelId, subId){
+  // 1. Highlight correct nav item
+  document.querySelectorAll('#screen-form .nav-item').forEach(function(i){i.classList.remove('active');});
+  var navBtn=document.querySelector('.nav-item [onclick*="'+panelId+'"]');
+  if(!navBtn) document.querySelectorAll('.nav-item').forEach(function(b){if(b.textContent.indexOf('Ann')>-1&&b.getAttribute('onclick')&&b.getAttribute('onclick').indexOf(panelId)>-1)b.classList.add('active');});
+
+  // 2. Open the parent section panel if collapsed
+  var panel=document.getElementById(panelId);
+  if(panel){
+    var body=panel.querySelector('.section-body');
+    var hdr=panel.querySelector('.section-hdr');
+    var ch=hdr?hdr.querySelector('.chevron'):null;
+    if(body&&body.style.display==='none'){
+      body.style.display='';
+      if(ch)ch.classList.add('open');
+      if(hdr)hdr.classList.remove('collapsed');
+    }
+  }
+
+  // 3. Scroll to the specific sub-section title or widget
+  var target=document.getElementById(subId);
+  if(target){
+    setTimeout(function(){
+      target.scrollIntoView({behavior:'smooth',block:'start'});
+      // Flash highlight on the sub-title
+      target.style.transition='background .2s';
+      target.style.background='var(--green-50)';
+      target.style.borderRadius='6px';
+      setTimeout(function(){target.style.background='';},1200);
+    },120);
+  } else if(panel){
+    setTimeout(function(){panel.scrollIntoView({behavior:'smooth',block:'start'});},120);
+  }
+}
+function setBadge(id,type){
+  var el=document.getElementById(id);if(!el)return;
+  var m={ok:[t('badge-filled'),'sec-badge ok'],partial:[t('badge-partial'),'sec-badge partial'],empty:[t('badge-empty'),'sec-badge empty']};
+  var arr=m[type]||m.empty;el.textContent=arr[0];el.className=arr[1];
+}
+function updateProg(){progVal=Math.min(progVal+2,95);document.getElementById('prog-bar').style.width=progVal+'%';document.getElementById('prog-label').textContent=progVal+'%';}
+function saveDraft(){showToast(t('toast-draft'));}
+function submitForm(){showToast(t('toast-submit'));document.getElementById('prog-bar').style.width='100%';document.getElementById('prog-label').textContent='100%';}
+function showToast(msg){var toast=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;toast.classList.add('show');setTimeout(function(){toast.classList.remove('show');},3500);}
+
+// ═══════════════════════════════════════
+// WORD EXPORT — COMPLETE
+// ═══════════════════════════════════════
+function exportWord(){
+  if(!currentProject){showToast(t('toast-export-err'));return;}
+  var p=currentProject;
+  var now=new Date().toLocaleDateString('en-GB');
+  var isFr=currentLang==='fr';
+
+  // Collect all field values
+  var V={
+    projname: document.getElementById('f-projname').value||p.title,
+    sapcode: document.getElementById('f-sapcode').value||p.code,
+    country: document.getElementById('f-country').value||p.country,
+    sector: document.getElementById('f-sector').value||p.sector,
+    exagency: document.getElementById('f-exagency').value||p.exagency,
+    iagency: document.getElementById('f-iagency').value||p.iagency,
+    pdo: document.getElementById('f-pdo').value||p.pdo,
+    components: document.getElementById('f-components').value||p.components,
+    approval: document.getElementById('f-approval').value||p.approval,
+    initcomp: document.getElementById('f-initcomp').value||p.initcomp,
+    revcomp: document.getElementById('f-revcomp').value||'—',
+    rptno: document.getElementById('f-rptno').value||'—',
+    periodFrom: document.getElementById('f-period-from').value||'—',
+    periodTo: document.getElementById('f-period-to').value||'—',
+    elapse: document.getElementById('f-elapse').value||p.elapse,
+    disbrate: document.getElementById('f-disbrate').value||p.disbrate,
+    covenants: document.getElementById('f-covenants').value||'',
+    piu: document.getElementById('f-piu').value||'',
+    agreed: document.getElementById('f-agreed').value||'',
+    procPlan: document.getElementById('f-proc-plan').value||'',
+    contracts: document.getElementById('f-contracts').value||'',
+    finSummary: document.getElementById('f-fin-summary').value||'',
+    specialAcct: document.getElementById('f-special-acct').value||'',
+    auditStatus: document.getElementById('f-audit-status').value||'',
+    auditIssues: document.getElementById('f-audit-issues').value||'',
+    physProgress: document.getElementById('f-phys-progress').value||'',
+    outputs: document.getElementById('f-outputs').value||'',
+    outcomes: document.getElementById('f-outcomes').value||'',
+    nextActivities: document.getElementById('f-next-activities').value||'',
+    esmp: document.getElementById('f-esmp').value||'',
+    rap: document.getElementById('f-rap').value||'',
+    esOblig: document.getElementById('f-es-oblig').value||'',
+    gender: document.getElementById('f-gender').value||'',
+    youth: document.getElementById('f-youth').value||'',
+    fragility: document.getElementById('f-fragility').value||'',
+    risksSummary: document.getElementById('f-risks-summary').value||'',
+    keyIssues: document.getElementById('f-key-issues').value||''
+  };
+  var totalA=p.sources.reduce(function(a,s){return a+s.orig;},0);
+  var totalD=p.sources.reduce(function(a,s){return a+(s.orig*s.pct/100);},0);
+  var pctAll=((totalD/totalA)*100).toFixed(1);
+
+  // XML helpers
+  var G='0F6E56',DG='3D3D3A',LG='F0EEE8',W='FFFFFF',AM='9A6010',BL='1D4E8F';
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function rPr(bold,color,sz,italic){return '<w:rPr>'+(bold?'<w:b/>':'')+(italic?'<w:i/>':'')+'<w:color w:val="'+(color||DG)+'"/><w:sz w:val="'+(sz||20)+'"/><w:szCs w:val="'+(sz||20)+'"/><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/></w:rPr>';}
+  function run(txt,bold,color,sz,italic){return '<w:r>'+rPr(bold,color,sz,italic)+'<w:t xml:space="preserve">'+esc(txt)+'</w:t></w:r>';}
+  function para(txt,bold,color,sz,align,spB,spA,fill,italic){
+    var pPr='<w:pPr><w:jc w:val="'+(align||'left')+'"/><w:spacing w:before="'+(spB||0)+'" w:after="'+(spA||80)+'"/>'+(fill?'<w:shd w:val="clear" w:color="auto" w:fill="'+fill+'"/>':'')+'</w:pPr>';
+    return '<w:p>'+pPr+run(txt,bold,color,sz,italic)+'</w:p>';
+  }
+  function multiPara(txt,color,sz,indent){
+    // Split by newline, output one para each
+    if(!txt||!txt.trim()) return para('(not filled)',false,'888880',sz||18);
+    return txt.split('\n').filter(function(l){return l.trim();}).map(function(line){
+      var pPr='<w:pPr><w:spacing w:before="0" w:after="60"/>'+(indent?'<w:ind w:left="360"/>':'')+'</w:pPr>';
+      return '<w:p>'+pPr+run(line.trim(),false,color||DG,sz||18)+'</w:p>';
+    }).join('');
+  }
+  function bulletPara(txt){
+    return '<w:p><w:pPr><w:spacing w:before="0" w:after="40"/><w:ind w:left="360" w:hanging="200"/></w:pPr>'+run('• '+txt,false,DG,18)+'</w:p>';
+  }
+  function h1(txt,fill){return '<w:p><w:pPr><w:spacing w:before="320" w:after="120"/>'+(fill?'<w:shd w:val="clear" w:color="auto" w:fill="'+fill+'"/>':'')+'</w:pPr>'+run(txt,true,fill?W:G,28)+'</w:p>';}
+  function h2(txt){return '<w:p><w:pPr><w:spacing w:before="240" w:after="80"/><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="2" w:color="'+G+'"/></w:pBdr></w:pPr>'+run(txt,true,G,24)+'</w:p>';}
+  function h3(txt){return '<w:p><w:pPr><w:spacing w:before="160" w:after="60"/></w:pPr>'+run(txt,true,DG,20)+'</w:p>';}
+  function pageBreak(){return '<w:p><w:r><w:br w:type="page"/></w:r></w:p>';}
+  function cell(txt,bold,color,sz,fill,w,italic){
+    return '<w:tc><w:tcPr><w:tcW w:w="'+(w||1800)+'" w:type="dxa"/><w:shd w:val="clear" w:color="auto" w:fill="'+(fill||W)+'"/><w:tcMar><w:top w:w="60" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tcMar></w:tcPr>'+
+      '<w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>'+run(txt,bold,color,sz||18,italic)+'</w:p></w:tc>';
+  }
+  function tRow(cells){return '<w:tr>'+cells+'</w:tr>';}
+  function tblStart(totalW){return '<w:tbl><w:tblPr><w:tblW w:w="'+totalW+'" w:type="dxa"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="C4C2B8"/><w:bottom w:val="single" w:sz="4" w:color="C4C2B8"/><w:left w:val="single" w:sz="4" w:color="C4C2B8"/><w:right w:val="single" w:sz="4" w:color="C4C2B8"/><w:insideH w:val="single" w:sz="2" w:color="D0CEC8"/><w:insideV w:val="single" w:sz="2" w:color="D0CEC8"/></w:tblBorders></w:tblPr>';}
+  var THF='D6EFE6';
+
+  // ── COVER PAGE
+  var cover=
+    para('','',W,36,'center',2800,400,G)+
+    para('PROJECT PROGRESS REPORT',true,W,36,'center',200,120,G)+
+    para('QPR No. '+esc(V.rptno),false,'9FE1CB',20,'center',0,80,G)+
+    para(V.projname,true,G,24,'center',240,80)+
+    para(V.sapcode+' · '+V.country,false,'888880',20,'center',40,40)+
+    para(V.sector,false,'888880',18,'center',0,200)+
+    para('This Project Progress Report is a document of the recipient. The views expressed herein do not necessarily represent those of AfDB\'s Board of Directors, Management, or staff.',false,'888880',16,'center',200,200)+
+    para('')+
+    tblStart(9000)+
+    tRow(cell('Reporting Period',true,DG,18,LG,3200)+cell(esc(V.periodFrom)+' to '+esc(V.periodTo),false,DG,18,W,5800))+
+    tRow(cell('Submitted by',true,DG,18,LG,3200)+cell(esc(V.exagency),false,DG,18,W,5800))+
+    tRow(cell('Date',true,DG,18,LG,3200)+cell(now,false,DG,18,W,5800))+
+    tRow(cell('Country',true,DG,18,LG,3200)+cell(esc(V.country),false,DG,18,W,5800))+
+    '</w:tbl>'+
+    pageBreak();
+
+  // ── EXECUTIVE SUMMARY
+  var execSum=
+    h2('EXECUTIVE SUMMARY')+
+    para('(approx. 1 page)',false,'888880',16,'left',0,80,false,true)+
+    bulletPara('Key activities undertaken during the previous reporting period and results achieved.')+
+    bulletPara('Assessment of overall implementation progress with highlights on each of the project\'s components, and key areas such as procurement, financial management, environmental and social safeguards, etc.')+
+    bulletPara('Summary of challenges or delays and actions taken to address them.')+
+    bulletPara('Overview of the next steps, including key actions for the attention of the Bank\'s task team.')+
+    para('')+
+    para('(Complete executive summary here)',false,'888880',18,false,60,60)+
+    pageBreak();
+
+  // ── SECTION A
+  var secA=h1('A – PROJECT BACKGROUND INFORMATION',G)+
+    h2('A.1 – Basic Data')+
+    tblStart(9000)+
+    tRow(cell('Project Title',true,DG,18,LG,2800)+cell(V.projname,false,DG,18,W,3200)+cell('SAP Code',true,DG,18,LG,1400)+cell(V.sapcode,false,DG,18,W,1600))+
+    tRow(cell('Country / Region',true,DG,18,LG,2800)+cell(V.country,false,DG,18,W,3200)+cell('Sector',true,DG,18,LG,1400)+cell(V.sector,false,DG,18,W,1600))+
+    tRow(cell('Executing Agency',true,DG,18,LG,2800)+cell(V.exagency,false,DG,18,W,3200)+cell('Implementing Agency',true,DG,18,LG,1400)+cell(V.iagency,false,DG,18,W,1600))+
+    tRow(cell('Project Development Objective',true,DG,18,LG,2800)+cell(V.pdo,false,DG,18,W,6200))+
+    tRow(cell('Project Components',true,DG,18,LG,2800)+cell(V.components,false,DG,18,W,6200))+
+    tRow(cell('Approval Date',true,DG,18,LG,2800)+cell(V.approval,false,DG,18,W,3200)+cell('Initial Completion',true,DG,18,LG,1400)+cell(V.initcomp,false,DG,18,W,1600))+
+    tRow(cell('Revised Completion Date',true,DG,18,LG,2800)+cell(V.revcomp,false,DG,18,W,3200)+cell('Report No.',true,DG,18,LG,1400)+cell(V.rptno,false,DG,18,W,1600))+
+    tRow(cell('Elapsed Time (%)',true,DG,18,LG,2800)+cell(V.elapse+'%',true,G,18,W,3200)+cell('Disbursement Rate (%)',true,DG,18,LG,1400)+cell(V.disbrate+'%',true,G,18,W,1600))+
+    '</w:tbl>'+para('');
+
+  // A.2 Financing Plan
+  secA += h2('A.2 – Financing Plan')+
+    tblStart(9000)+
+    tRow(cell('Financing Source',true,DG,16,THF,2800)+cell('Orig. Approved (UA)',true,DG,16,THF,1600)+cell('Add./Cancelled (UA)',true,DG,16,THF,1600)+cell('Updated Total (UA)',true,DG,16,THF,1600)+cell('Disbursed (%)',true,DG,16,THF,1400))+
+    p.sources.map(function(s){return tRow(cell(s.src,false,DG,16,W,2800)+cell(s.orig.toLocaleString(),false,DG,16,W,1600)+cell(s.addl.toLocaleString(),false,DG,16,W,1600)+cell(s.total.toLocaleString(),false,DG,16,W,1600)+cell(s.pct+'%',false,DG,16,W,1400));}).join('')+
+    tRow(cell('TOTAL',true,DG,16,LG,2800)+cell(totalA.toLocaleString(),true,DG,16,LG,1600)+cell('—',false,DG,16,LG,1600)+cell(totalA.toLocaleString(),true,DG,16,LG,1600)+cell(pctAll+'%',true,G,16,LG,1400))+
+    '</w:tbl>'+para('');
+
+  // A.3 Covenants
+  secA += h2('A.3 – Compliance with Project Covenants')+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Overall performance and timeliness in the delivery of project covenants against expectations.')+
+    bulletPara('For covenants that are still pending at the time of reporting, provide underlying reasons for the delays and a revised delivery timeline. If no covenant is pending, there is no need to update this section.')+
+    bulletPara('See Annex 1.1 for the detailed covenant status table.')+
+    para('')+
+    multiPara(V.covenants)+para('');
+
+  // A.4 PIU
+  secA += h2('A.4 – PIU Office Establishment and Staffing')+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Status of office establishment and staffing, including office set up and equipment, progress in recruitment (key positions filled, unfilled, being filled).')+
+    bulletPara('Summary of key challenges (capacity gap and needs, turnover, etc.), actions taken and further proposals to address them.')+
+    bulletPara('Project Steering Committee including establishment, frequency of meetings, clearance of documents.')+
+    para('')+
+    multiPara(V.piu)+para('');
+
+  // A.5 Agreed Actions
+  secA += h2('A.5 – Implementation of Agreed Actions from the Last QPR / Supervision Mission')+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Implementation status of agreed actions during the last reporting period and/or supervision mission — provide percentage of actions successfully implemented.')+
+    bulletPara('Overview of pending actions, justifications and the next steps.')+
+    bulletPara('See Annex 1.2 for the detailed corrective actions table.')+
+    para('')+
+    multiPara(V.agreed)+para('');
+
+  // ── SECTION B
+  var secB=h1('B – PROCUREMENT PERFORMANCE',G)+
+    h2('B.1 – Procurement Plan Implementation')+
+    para('(approx. 1 page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Progress in the implementation of the procurement plan (planned vs awarded), delays, reasons for delays and planned measures to recover the lost time.')+
+    bulletPara('Performance of procurement systems — Bank or Borrower procurement systems and whether there is a need to revise the relevant thresholds.')+
+    bulletPara('Summary of key challenges, including issues no-objections, capacity to implement procurement, stakeholders\' performance, etc.')+
+    bulletPara('Updated Procurement plan to accompany the report (annexed or separate attachment).')+
+    para('')+
+    multiPara(V.procPlan)+para('')+
+    h2('B.2 – Management of Ongoing Contracts')+
+    para('(approx. 1.5 pages)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Performance and progress of ongoing contracts with a focus on the top 3 contracts (in terms of size) per category (Works, Goods, Services).')+
+    bulletPara('Summary of key challenges regarding contract management, and proposals to address them.')+
+    bulletPara('See Annexes 3.2 and/or 3.3 for detailed contract management tables.')+
+    para('')+
+    multiPara(V.contracts)+para('');
+
+  // ── SECTION C
+  var secC=h1('C – FINANCIAL PERFORMANCE',G)+
+    h2('C.1 – Financial Summary')+
+    para('(approx. 1 page)',false,'888880',15,false,0,40,false,true)+
+    tblStart(9000)+
+    tRow(cell('Financing Source',true,DG,16,THF,3000)+cell('Approved (UA)',true,DG,16,THF,1800)+cell('Disbursed (UA)',true,DG,16,THF,1800)+cell('Disbursed (%)',true,DG,16,THF,1200)+cell('Balance (UA)',true,DG,16,THF,1200))+
+    p.sources.map(function(s){
+      var disb=Math.round(s.orig*s.pct/100);
+      return tRow(cell(s.src,false,DG,16,W,3000)+cell(s.orig.toLocaleString(),false,DG,16,W,1800)+cell(disb.toLocaleString(),false,DG,16,W,1800)+cell(s.pct+'%',true,G,16,W,1200)+cell((s.orig-disb).toLocaleString(),false,DG,16,W,1200));
+    }).join('')+
+    tRow(cell('TOTAL',true,DG,16,LG,3000)+cell(totalA.toLocaleString(),true,DG,16,LG,1800)+cell(Math.round(totalD).toLocaleString(),true,G,16,LG,1800)+cell(pctAll+'%',true,G,16,LG,1200)+cell((totalA-Math.round(totalD)).toLocaleString(),true,DG,16,LG,1200))+
+    '</w:tbl>'+para('')+
+    bulletPara('Summary of progress in the implementation of the disbursement plan (actual vs target).')+
+    bulletPara('Assessment of disbursement performance by source of financing.')+
+    bulletPara('Update on counterpart disbursement and co-financing disbursements as applicable.')+
+    bulletPara('Summary of the status of the special account including utilization (% utilization) and challenges.')+
+    bulletPara('The Interim Financial Report (IFR) shall accompany the report. See Annexes 4.1, 4.2 and 4.3.')+
+    para('')+
+    h3('Disbursement Narrative & Key Challenges')+
+    multiPara(V.finSummary)+para('')+
+    h3('Special Account Status')+
+    multiPara(V.specialAcct)+para('')+
+    h2('C.2 – Audit and Financial Management Compliance')+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Audit reports status for audits due at the time of reporting. Provide reasons for overdue reports and a revised timeline to finalize them.')+
+    bulletPara('Summary of key issues raised by audit reports and recommendations proposed/implemented.')+
+    bulletPara('See Annexes 4.4 and 4.5.')+
+    para('')+
+    h3('Audit Reports Status')+
+    multiPara(V.auditStatus)+para('')+
+    h3('Key Audit Issues & Recommendations')+
+    multiPara(V.auditIssues)+para('');
+
+  // ── SECTION D
+  var secD=h1('D – PHYSICAL AND RESULTS PROGRESS',G)+
+    h2('D.1 – Progress in the Implementation of Key Project Activities')+
+    para('(approx. 1 page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Progress on key activities planned to date (provide a rough estimate of the overall physical progress if available from any contractor).')+
+    bulletPara('Key bottlenecks that have impacted on the implementation of activities, and actions undertaken to address them.')+
+    bulletPara('Change in scope and potential implications, as applicable.')+
+    bulletPara('Overall progress/trend to date towards annual targets as planned in the AWPB for each component, especially at Q4 report.')+
+    bulletPara('See Annex 2.3 for the detailed activity progress table.')+
+    para('')+
+    multiPara(V.physProgress)+para('')+
+    h2('D.2 – Progress Made Towards Project Outputs and Outcomes')+
+    para('(approx. 1 page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Progress towards achieving the main output indicators; proportion achieved, on-track and off-track; and underlying reasons.')+
+    bulletPara('Likelihood of output contributing to achievement of outcomes; proportion of outcome indicators achieved, on-track and off-track. Ensure Q4 report provides updates on outcome indicators.')+
+    bulletPara('Highlights of monitoring and evaluation challenges e.g. capacity, data availability, data collection issues.')+
+    bulletPara('See Annexes 2.1 and 2.2 for indicator tables.')+
+    para('')+
+    h3('Output Indicators Narrative')+
+    multiPara(V.outputs)+para('')+
+    h3('Outcome Indicators Narrative')+
+    multiPara(V.outcomes)+para('')+
+    h2('D.3 – Planned Key Activities for Next Quarter (as per AWP)')+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Summary of key upcoming activities for the next Quarter including activities that are still ongoing from previous quarters with updated timelines.')+
+    bulletPara('See Annex 2.4.')+
+    para('')+
+    multiPara(V.nextActivities)+para('');
+
+  // ── SECTION E
+  var secE=h1('E – SAFEGUARDS',G)+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Update the list of E&S safeguard documents prepared and published by the Borrower and the Bank.')+
+    bulletPara('Summary on progress made in the implementation of Environmental & Social Management Plan (ESMP), Resettlement Action Plan (RAP), etc.')+
+    bulletPara('Assessment of the overall progress in meeting E&S obligations as defined in the financing agreement.')+
+    para('')+
+    h3('E&S Safeguard Documents Published')+
+    multiPara(V.esmp)+para('')+
+    h3('ESMP / RAP Implementation Progress')+
+    multiPara(V.rap)+para('')+
+    h3('Overall E&S Obligations Assessment')+
+    multiPara(V.esOblig)+para('');
+
+  // ── SECTION F
+  var secF=h1('F – CROSS-CUTTING ISSUES',G)+
+    para('(approx. 1 page — discuss only cross-cutting issues relevant to this project)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Assessment of progress in mainstreaming Gender — collection of disaggregated data, implementation of the Gender action plan (as applicable).')+
+    bulletPara('Assessment of jobs, skills and youth mainstreaming for relevant projects including collection of disaggregated data.')+
+    bulletPara('Assessment of fragility and climate change aspects (as applicable).')+
+    para('')+
+    h3('Gender Mainstreaming')+multiPara(V.gender)+para('')+
+    h3('Jobs, Skills & Youth')+multiPara(V.youth)+para('')+
+    h3('Fragility & Climate Change')+multiPara(V.fragility)+para('');
+
+  // ── SECTION G
+  var secG=h1('G – KEY RISKS AND MITIGATION MEASURES',G)+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Summary of key emerging risks and proposed mitigation measures: socio-economic/political context, procurement, E&S, disbursement, audits, etc.')+
+    bulletPara('See Annex 5.1 for the detailed risk register.')+
+    para('')+
+    multiPara(V.risksSummary)+para('');
+
+  // ── SECTION H
+  var secH=h1('H – KEY ISSUES AND ACTIONS FOR ATTENTION',G)+
+    para('(approx. ½ page)',false,'888880',15,false,0,40,false,true)+
+    bulletPara('Summary of key issues and actions for the attention of the Bank\'s task team and management — recap of key issues raised across the report.')+
+    bulletPara('See Annex 5.3 for the detailed issues and actions log.')+
+    para('')+
+    multiPara(V.keyIssues)+para('');
+
+  // ── HELPER: extract any annex table (template OR upload notice) → Word XML
+  function extractAnnexTable(tblId, colDefs, title) {
+    var out = h2(title);
+    var tbl = document.getElementById('tbl-' + tblId);
+
+    // Detect if the upload tab is active for this widget
+    var uploadActive = false;
+    var uploadedFileName = null;
+    if (tbl) {
+      var widget = tbl.closest('.annex-widget');
+      if (widget) {
+        var panels = widget.querySelectorAll('.annex-panel');
+        if (panels.length >= 2 && panels[1].classList.contains('active')) {
+          uploadActive = true;
+          var fp = panels[1].querySelector('.file-preview-name');
+          if (fp) uploadedFileName = fp.textContent.trim();
+        }
+      }
+    } else {
+      // Table doesn't exist yet — also check if upload panel is active via widget container
+      var widgetCont = document.getElementById(tblId + '-widget');
+      if (widgetCont) {
+        var panels2 = widgetCont.querySelectorAll('.annex-panel');
+        if (panels2.length >= 2 && panels2[1].classList.contains('active')) {
+          uploadActive = true;
+          var fp2 = panels2[1].querySelector('.file-preview-name');
+          if (fp2) uploadedFileName = fp2.textContent.trim();
+        }
+      }
+    }
+
+    // Case 1: upload tab active
+    if (uploadActive) {
+      out += tblStart(9000)+
+        tRow(cell('Type',true,DG,16,THF,2200)+cell('Reference',true,DG,16,THF,6800))+
+        tRow(cell('External file attached',false,DG,16,W,2200)+cell(uploadedFileName||'(see accompanying uploaded document)',false,DG,16,W,6800))+
+        '</w:tbl>'+para('');
+      return out;
+    }
+
+    // Case 2: no table in DOM
+    if (!tbl) {
+      out += para('(Not filled)',false,'888880',16)+para('');
+      return out;
+    }
+
+    // Case 3: template table — extract data
+    var ths = Array.from(tbl.querySelectorAll('thead th')).filter(function(th){
+      var s = th.getAttribute('style')||'';
+      return !s.includes('26px');
+    });
+    var rows = Array.from(tbl.querySelectorAll('tbody tr'));
+    var hasData = rows.some(function(tr){
+      return Array.from(tr.querySelectorAll('input,select,textarea')).some(function(el){
+        return el.value && el.value.trim() !== '';
+      });
+    });
+
+    if (rows.length === 0 || !hasData) {
+      out += para('(Not filled)',false,'888880',16)+para('');
+      return out;
+    }
+
+    var numCols = ths.length;
+    var colW = Math.floor(9000 / numCols);
+    var rem = 9000 - colW * numCols;
+
+    out += tblStart(9000);
+    // Header row
+    out += tRow(ths.map(function(th, i){
+      return cell(th.textContent.trim(), true, DG, 15, THF, colW + (i===0 ? rem : 0));
+    }).join(''));
+
+    // Data rows
+    rows.forEach(function(tr, ri){
+      var tds = Array.from(tr.querySelectorAll('td')).slice(0, numCols);
+      var isBold = tr.style.fontWeight === '600' || tr.style.fontWeight === 'bold';
+      var bg = isBold ? LG : (ri%2===0 ? W : 'FAFAF8');
+      out += tRow(tds.map(function(td, ci){
+        var w = colW + (ci===0 ? rem : 0);
+        var inp = td.querySelector('input,select,textarea');
+        var val = inp ? inp.value.trim() : td.textContent.trim();
+        return cell(val||'—', isBold, DG, 15, bg, w);
+      }).join(''));
+    });
+
+    out += '</w:tbl>'+para('');
+    return out;
+  }
+
+  // Special extractor for the receipts table (ann42) which has fixed rows
+  function extractReceiptsTable() {
+    var out = h2('Annex 4.2 – Receipts & Expenditure Statement');
+    var widgetCont = document.getElementById('ann42-widget');
+    if (!widgetCont) { out += para('(Not filled)',false,'888880',16)+para(''); return out; }
+
+    var panels = widgetCont.querySelectorAll('.annex-panel');
+    // Upload tab active?
+    if (panels.length >= 2 && panels[1].classList.contains('active')) {
+      var fp = panels[1].querySelector('.file-preview-name');
+      out += tblStart(9000)+
+        tRow(cell('Type',true,DG,16,THF,2200)+cell('Reference',true,DG,16,THF,6800))+
+        tRow(cell('External file attached',false,DG,16,W,2200)+cell(fp?fp.textContent.trim():'(see attached document)',false,DG,16,W,6800))+
+        '</w:tbl>'+para('');
+      return out;
+    }
+
+    var tbl = widgetCont.querySelector('table.ind-table');
+    if (!tbl) { out += para('(Not filled)',false,'888880',16)+para(''); return out; }
+    var ths = Array.from(tbl.querySelectorAll('thead th'));
+    var numCols = ths.length;
+    var colW = Math.floor(9000/numCols);
+    var rem = 9000 - colW*numCols;
+    out += tblStart(9000);
+    out += tRow(ths.map(function(th,i){ return cell(th.textContent.trim(),true,DG,15,THF,colW+(i===0?rem:0)); }).join(''));
+    var hasData = false;
+    Array.from(tbl.querySelectorAll('tbody tr')).forEach(function(tr,ri){
+      var tds = Array.from(tr.querySelectorAll('td'));
+      var isBold = !!(tr.style.background && tr.style.background !== '');
+      var bg = isBold ? LG : (ri%2===0?W:'FAFAF8');
+      var rowXml = tds.map(function(td,ci){
+        var inp = td.querySelector('input');
+        var val = inp ? inp.value.trim() : td.textContent.trim();
+        if (val && val !== '—' && val !== '0') hasData = true;
+        return cell(val||'—',isBold,DG,15,bg,colW+(ci===0?rem:0));
+      }).join('');
+      out += tRow(rowXml);
+    });
+    out += '</w:tbl>'+para('');
+    if (!hasData) return h2('Annex 4.2 – Receipts & Expenditure Statement')+para('(Not filled)',false,'888880',16)+para('');
+    return out;
+  }
+
+  // Build all annex Word XML
+  var annexes = pageBreak()+h1('ANNEXES',G);
+
+  annexes += pageBreak()+h1('Annex 1 – General Documents',G);
+  annexes += extractAnnexTable('ann11', COL_REG['ann11'], 'Annex 1.1 – Status of Project Covenants');
+  annexes += extractAnnexTable('ann12', COL_REG['ann12'], 'Annex 1.2 – Update on Corrective Actions (Last Quarter)');
+
+  annexes += pageBreak()+h1('Annex 2 – Results Progress',G);
+  annexes += extractAnnexTable('ann21', COL_REG['ann21'], 'Annex 2.1 – Outcome Reporting (Q4)');
+  annexes += extractAnnexTable('ann22', COL_REG['ann22'], 'Annex 2.2 – Output Reporting');
+  annexes += extractAnnexTable('ann23', COL_REG['ann23'], 'Annex 2.3 – Activity Progress (Previous Quarter)');
+  annexes += extractAnnexTable('ann24', COL_REG['ann24'], 'Annex 2.4 – Key Activities Planned (Next Quarter)');
+
+  annexes += pageBreak()+h1('Annex 3 – Procurement',G);
+  annexes += extractAnnexTable('ann31', COL_REG['ann31'], 'Annex 3.1 – Procurement Activities Status');
+  annexes += extractAnnexTable('ann32', COL_REG['ann32'], 'Annex 3.2 – Ongoing Contracts (Bank System)');
+  annexes += extractAnnexTable('ann33', COL_REG['ann33'], 'Annex 3.3 – Ongoing Contracts (Borrower System)');
+
+  annexes += pageBreak()+h1('Annex 4 – Financial Management & Disbursement',G);
+  annexes += extractAnnexTable('ann41', COL_REG['ann41'], 'Annex 4.1 – Special Account Justification');
+  annexes += extractReceiptsTable();
+  annexes += extractAnnexTable('ann43', COL_REG['ann43'], 'Annex 4.3 – Reconciliation of Disbursement Requests');
+  annexes += extractAnnexTable('ann44', COL_REG['ann44'], 'Annex 4.4 – Audit Status');
+  annexes += extractAnnexTable('ann45', COL_REG['ann45'], 'Annex 4.5 – Audit Recommendations Implementation');
+
+  annexes += pageBreak()+h1('Annex 5 – Risks, Actions & Lessons Learned',G);
+  annexes += extractAnnexTable('ann51', COL_REG['ann51'], 'Annex 5.1 – Risks and Mitigation Measures');
+  annexes += extractAnnexTable('ann52', COL_REG['ann52'], 'Annex 5.2 – Lessons Learned Register');
+  annexes += extractAnnexTable('ann53', COL_REG['ann53'], 'Annex 5.3 – Issues and Actions for Management');
+
+  annexes += para('')+
+    para('Accompanying documents: Annual Work Plan and Budget (AWPB) · Updated Procurement Plan · Updated Disbursement Plan · Most recent E&S report · Interim Financial Report (IFR)',false,'888880',16);
+
+  // ── ASSEMBLE DOC
+  var docXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">'+
+    '<w:body>'+
+    cover+execSum+secA+pageBreak()+secB+pageBreak()+secC+pageBreak()+secD+pageBreak()+secE+pageBreak()+secF+pageBreak()+secG+secH+
+    annexes+
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134"/></w:sectPr>'+
+    '</w:body></w:document>';
+
+  var relsXml='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  var stylesXml='<?xml version="1.0" encoding="UTF-8"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="20"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>';
+  var ct='<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>';
+  var rr='<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+
+  var zip=new JSZip();
+  zip.file('[Content_Types].xml',ct);
+  zip.file('_rels/.rels',rr);
+  zip.file('word/document.xml',docXml);
+  zip.file('word/styles.xml',stylesXml);
+  zip.file('word/_rels/document.xml.rels',relsXml);
+  zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}).then(function(blob){
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='QPR_'+p.code+'_'+new Date().toISOString().slice(0,10)+'.docx';
+    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    showToast(t('toast-export'));
+  });
+}
+
+// INIT
+applyTranslations();
+</script>
+</body>
+</html>
