@@ -841,17 +841,18 @@ body{font-family:var(--font-b);font-size:14px;color:var(--gray-700);background:v
     </div>
     <div class="login-title" id="ln-title">Welcome back</div>
     <div class="login-sub" id="ln-sub">Sign in to access your projects</div>
+    <form id="login-form" onsubmit="doLogin();return false;" autocomplete="on">
     <div class="login-field">
       <label class="login-label" id="ln-email-lbl">Email address</label>
-      <input class="login-input" id="login-email" type="email" autocomplete="email" placeholder="you@afdb.org">
+      <input class="login-input" id="login-email" name="email" type="email" autocomplete="username" placeholder="you@afdb.org">
     </div>
     <div class="login-field">
       <label class="login-label" id="ln-pwd-lbl">Password</label>
-      <input class="login-input" id="login-password" type="password" autocomplete="current-password" placeholder="••••••••"
-        onkeydown="if(event.key==='Enter')doLogin()">
+      <input class="login-input" id="login-password" name="password" type="password" autocomplete="current-password" placeholder="••••••••">
       <div class="login-error" id="login-error-msg">Incorrect email or password.</div>
     </div>
-    <button class="btn-login" onclick="doLogin()" id="ln-btn">Sign in</button>
+    <button class="btn-login" type="submit" id="ln-btn">Sign in</button>
+    </form>
     <div id="login-role-preview" style="margin-top:14px;display:none"></div>
     <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--gray-100)">
       <span style="font-size:11px;color:var(--gray-400)" id="ln-default-hint">Default: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3f5e5b5256517f5e595b5d11504d58">[email&#160;protected]</a> / admin2024</span>
@@ -1245,7 +1246,7 @@ body{font-family:var(--font-b);font-size:14px;color:var(--gray-700);background:v
 .login-input{width:100%;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:var(--r-md);font-size:14px;font-family:var(--font-b);color:var(--gray-900);box-sizing:border-box;transition:border-color .2s;}
 .login-input:focus{outline:none;border-color:var(--green-600);}
 .login-input.error{border-color:#e53e3e;}
-.login-error{font-size:12px;color:#e53e3e;margin-top:6px;display:none;}
+.login-error{font-size:12px;color:#c53030;margin-top:8px;display:none;background:#fff5f5;border:1px solid #fed7d7;padding:8px 12px;border-radius:6px;}
 .btn-login{width:100%;padding:13px;background:var(--green-700);color:white;border:none;border-radius:var(--r-md);font-size:14px;font-weight:600;font-family:var(--font-b);cursor:pointer;margin-top:8px;transition:background .15s;}
 .btn-login:hover{background:var(--green-800);}
 .login-role-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:16px;}
@@ -2087,18 +2088,42 @@ function routeUser(){
 }
 
 function doLogin(){
-  var email = (document.getElementById('login-email').value || '').trim().toLowerCase();
-  var pwd   = (document.getElementById('login-password').value || '').trim();
-  var errEl = document.getElementById('login-error-msg');
+  var emailEl = document.getElementById('login-email');
+  var pwdEl   = document.getElementById('login-password');
+  var errEl   = document.getElementById('login-error-msg');
+  
+  // Read value using native getter to handle browser autofill correctly
+  var nativeGet = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').get;
+  var email = (nativeGet.call(emailEl) || emailEl.value || '').trim().toLowerCase();
+  var pwd   = (nativeGet.call(pwdEl)   || pwdEl.value   || '').trim();
+  
   if(errEl) errEl.style.display = 'none';
-  document.getElementById('login-password').classList.remove('error');
+  emailEl.classList.remove('error');
+  pwdEl.classList.remove('error');
+  
+  // If both are empty, the form may not have been submitted — try reading from form data
+  if(!email && !pwd){
+    var form = document.getElementById('login-form');
+    if(form){
+      var fd = new FormData(form);
+      email = (fd.get('email')||'').trim().toLowerCase();
+      pwd   = (fd.get('password')||'').trim();
+    }
+  }
+  
+  if(!email || !pwd){
+    if(errEl){ errEl.textContent = 'Please enter your email and password.'; errEl.style.display='block'; }
+    return;
+  }
+  
   var user = null;
   getUsers().forEach(function(u){
-    if(u.email.toLowerCase() === email && u.password === pwd && u.active !== false) user = u;
+    if(u.email.toLowerCase()===email && u.password===pwd && u.active!==false) user=u;
   });
+  
   if(!user){
-    if(errEl) errEl.style.display = 'block';
-    document.getElementById('login-password').classList.add('error');
+    if(errEl){ errEl.textContent='Incorrect email or password.'; errEl.style.display='block'; }
+    pwdEl.classList.add('error');
     return;
   }
   currentUser = user;
