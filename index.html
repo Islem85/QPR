@@ -853,6 +853,13 @@ body{font-family:var(--font-b);font-size:14px;color:var(--gray-700);background:v
     </div>
     <button class="btn-login" onclick="doLogin()" id="ln-btn">Sign in</button>
     <div id="login-role-preview" style="margin-top:14px;display:none"></div>
+    <div style="text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--gray-100)">
+      <span style="font-size:11px;color:var(--gray-400)" id="ln-default-hint">Default: admin@afdb.org / admin2024</span>
+      <br>
+      <button onclick="hardResetAuth()" style="background:none;border:none;font-size:11px;color:var(--gray-400);cursor:pointer;margin-top:6px;text-decoration:underline;font-family:var(--font-b)" id="ln-reset-btn">
+        Problems signing in? Reset stored data
+      </button>
+    </div>
   </div>
 </div>
 
@@ -2021,6 +2028,19 @@ function saveReports(r){ try { localStorage.setItem(REPORTS_KEY, JSON.stringify(
 // ── Session ────────────────────────────────────────────────────────────────
 function setSession(user){ try { localStorage.setItem(AUTH_KEY, JSON.stringify({id:user.id, ts:Date.now()})); } catch(e){} }
 function clearSession(){ try { localStorage.removeItem(AUTH_KEY); } catch(e){} }
+function hardResetAuth(){
+  // Wipe ALL QPR data from localStorage and reload
+  try {
+    var keysToRemove = [];
+    for(var i=0; i<localStorage.length; i++){
+      var k = localStorage.key(i);
+      if(k && k.indexOf('qpr_') === 0) keysToRemove.push(k);
+    }
+    keysToRemove.forEach(function(k){ localStorage.removeItem(k); });
+  } catch(e){}
+  window.location.reload();
+}
+
 function tryRestoreSession(){
   try {
     var s = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
@@ -4047,6 +4067,29 @@ function confirmSubmit(){
 // ════════════════════════════════════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════════════════════════════════════
+
+// ── Version guard: wipe stale auth data from old app versions ─────────────
+var APP_VERSION = 'v3.1';
+var VER_KEY     = 'qpr_app_version';
+(function(){
+  try {
+    var storedVer = localStorage.getItem(VER_KEY);
+    if(storedVer !== APP_VERSION){
+      // Wipe ALL old QPR auth/user keys from every previous version
+      var keysToRemove = [];
+      for(var i=0; i<localStorage.length; i++){
+        var k = localStorage.key(i);
+        if(k && (k.indexOf('qpr_auth') === 0 || k.indexOf('qpr_users') === 0)){
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach(function(k){ localStorage.removeItem(k); });
+      localStorage.setItem(VER_KEY, APP_VERSION);
+      console.log('[QPR] Auth data reset for version ' + APP_VERSION);
+    }
+  } catch(e){}
+})();
+
 applyTranslations();
 renderDraftsList();
 
