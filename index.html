@@ -398,14 +398,14 @@ body{font-family:var(--font-b);font-size:14px;color:var(--gray-700);background:v
     </div>
     <div class="login-title" id="login-title-lbl">QPR Platform</div>
     <div class="login-sub" id="login-sub-lbl">African Development Bank — Sign in to continue</div>
-    <div class="login-error" id="login-error">Invalid email or password.</div>
+    <div class="login-error" id="login-error-msg">Invalid email or password.</div>
     <div class="login-field">
       <label class="login-label" for="login-email" id="login-email-lbl">Email address</label>
       <input class="login-input" type="email" id="login-email" placeholder="you@afdb.org" autocomplete="username">
     </div>
     <div class="login-field">
       <label class="login-label" for="login-pwd" id="login-pwd-lbl">Password</label>
-      <input class="login-input" type="password" id="login-pwd" placeholder="••••••••" autocomplete="current-password">
+      <input class="login-input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
     </div>
     <button class="login-btn" id="login-btn-lbl" onclick="doLogin()">Sign In</button>
   </div>
@@ -654,8 +654,8 @@ body{font-family:var(--font-b);font-size:14px;color:var(--gray-700);background:v
     </div>
     <div class="login-field">
       <label id="login-pwd-lbl">Password</label>
-      <input class="login-input" id="login-pwd" type="password" placeholder="••••••••" autocomplete="current-password">
-      <div class="login-error" id="login-error">Invalid email or password.</div>
+      <input class="login-input" id="login-password" type="password" placeholder="••••••••" autocomplete="current-password">
+      <div class="login-error" id="login-error-msg">Invalid email or password.</div>
     </div>
     <button class="btn-login" onclick="doLogin()" id="login-btn">Sign In</button>
     <div class="login-role-hint" id="login-hint">Access is managed by your system administrator.</div>
