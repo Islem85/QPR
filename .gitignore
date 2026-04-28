@@ -1,0 +1,6 @@
+node_modules/
+.env
+qpr_users.json
+*.db
+.DS_Store
+Thumbs.db

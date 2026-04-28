@@ -1,0 +1,20 @@
+[
+  {
+    "code": "P-MR-AAC-011",
+    "name": "Projet d'Appui à la Transformation Agricole en Mauritanie (PATAM)",
+    "country": "Mauritanie",
+    "sector": "Irrigation and Drainage"
+  },
+  {
+    "code": "P-SN-AAC-023",
+    "name": "Projet de Développement Rizicole au Sénégal (PDRS)",
+    "country": "Sénégal",
+    "sector": "Agriculture"
+  },
+  {
+    "code": "P-ML-AAC-007",
+    "name": "Projet d'Aménagement Hydro-agricole au Mali (PAHAM)",
+    "country": "Mali",
+    "sector": "Irrigation and Drainage"
+  }
+]
