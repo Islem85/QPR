@@ -1,0 +1,35 @@
+{
+  "P-MR-AAC-011": {
+    "title": "Projet d'Appui à la Transformation Agricole en Mauritanie (PATAM)",
+    "code": "P-MR-AAC-011",
+    "country": "Mauritanie",
+    "sector": "Irrigation and Drainage",
+    "taskManager": {
+      "name": "Aminata Diallo",
+      "email": "a.diallo@afdb.org",
+      "division": "RDGW/AHFR"
+    }
+  },
+  "P-SN-AAC-023": {
+    "title": "Projet de Développement Rizicole au Sénégal (PDRS)",
+    "code": "P-SN-AAC-023",
+    "country": "Sénégal",
+    "sector": "Agriculture",
+    "taskManager": {
+      "name": "Ousmane Traoré",
+      "email": "o.traore@afdb.org",
+      "division": "RDGW/AHAI"
+    }
+  },
+  "P-ML-AAC-007": {
+    "title": "Projet d'Aménagement Hydro-agricole au Mali (PAHAM)",
+    "code": "P-ML-AAC-007",
+    "country": "Mali",
+    "sector": "Irrigation and Drainage",
+    "taskManager": {
+      "name": "Fatoumata Koné",
+      "email": "f.kone@afdb.org",
+      "division": "RDGW/AHFR"
+    }
+  }
+}

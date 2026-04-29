@@ -79,7 +79,7 @@ function getReportById(id) {
   return (read().reports || []).find(r => r.id === id) || null;
 }
 
-function createReport({ project_code, created_by_id, created_by_email, status, period_from, period_to, report_number, data }) {
+function createReport({ project_code, created_by_id, created_by_email, status, period_from, period_to, report_number, quarter, year, data }) {
   const db = read();
   if (!db.reports) db.reports = [];
   if (!db.reportNextId) db.reportNextId = 1;
@@ -92,6 +92,8 @@ function createReport({ project_code, created_by_id, created_by_email, status, p
     period_from,
     period_to,
     report_number,
+    quarter: quarter || null,
+    year: year || null,
     data: data || {},
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
@@ -102,13 +104,15 @@ function createReport({ project_code, created_by_id, created_by_email, status, p
   return report;
 }
 
-function updateReport(id, { period_from, period_to, report_number, data }) {
+function updateReport(id, { period_from, period_to, report_number, quarter, year, data }) {
   const db = read();
   const report = (db.reports || []).find(r => r.id === id);
   if (!report) return null;
   if (period_from !== undefined) report.period_from = period_from;
   if (period_to !== undefined) report.period_to = period_to;
   if (report_number !== undefined) report.report_number = report_number;
+  if (quarter !== undefined) report.quarter = quarter;
+  if (year !== undefined) report.year = year;
   if (data !== undefined) report.data = data;
   report.updated_at = new Date().toISOString();
   write(db);

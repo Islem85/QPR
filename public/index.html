@@ -1327,6 +1327,31 @@ function showAuthScreen(screen) {
   if (screen === 'register') DASHBOARD._loadProjectsDropdown();
 }
 
+// Post-login redirect: coordinateur → dashboard, collaborateur → project form directly
+function postLoginRedirect(user) {
+  if (!user) { document.getElementById('screen-lookup').style.display = 'flex'; return; }
+  if (user.role === 'coordinateur') {
+    // Small delay so DASHBOARD module is ready
+    setTimeout(function(){ DASHBOARD.open(); }, 50);
+  } else {
+    // Collaborateur: open their project form directly, skipping lookup
+    if (user.project_code && SAP_DB && SAP_DB[user.project_code]) {
+      openProjectDirect(user.project_code);
+    } else {
+      document.getElementById('screen-lookup').style.display = 'flex';
+    }
+  }
+}
+
+function openProjectDirect(projectCode) {
+  var p = SAP_DB && SAP_DB[projectCode];
+  if (!p) { document.getElementById('screen-lookup').style.display = 'flex'; return; }
+  document.getElementById('screen-lookup').style.display = 'none';
+  // showPreview sets currentProject and populates the form
+  showPreview(p);
+  openForm();
+}
+
 function onRegProjectChange() {
   var sel = document.getElementById('reg-project');
   var preview = document.getElementById('proj-preview-auth');
@@ -1407,7 +1432,6 @@ var AUTH = {
       showAuthScreen('login');
       return;
     }
-    // Verify token with server
     var self = this;
     apiFetch('/api/auth/me').then(function(res) {
       if (!res || !res.ok) { self.logout(); return; }
@@ -1416,9 +1440,9 @@ var AUTH = {
       if (!data) return;
       self.saveSession(self.getToken(), data.user);
       self.applyRoleUI(data.user);
-      // Show lookup screen (was hidden)
-      showAuthScreen(''); // clear auth screens
-      document.getElementById('screen-lookup').style.display = 'flex';
+      showAuthScreen('');
+      postLoginRedirect(data.user);
+      renderDraftsList();
     }).catch(function() { self.logout(); });
   },
 
@@ -1440,8 +1464,8 @@ var AUTH = {
       AUTH.saveSession(r.d.token, r.d.user);
       AUTH.applyRoleUI(r.d.user);
       showAuthScreen('');
-      document.getElementById('screen-lookup').style.display = 'flex';
       renderDraftsList();
+      postLoginRedirect(r.d.user);
     }).catch(function() {
       AUTH._setBtnLoading('btn-login','login-spinner',false);
       errEl.textContent = 'Erreur réseau. Vérifiez votre connexion.'; errEl.style.display='block';
@@ -1469,8 +1493,8 @@ var AUTH = {
       AUTH.saveSession(r.d.token, r.d.user);
       AUTH.applyRoleUI(r.d.user);
       showAuthScreen('');
-      document.getElementById('screen-lookup').style.display = 'flex';
       renderDraftsList();
+      postLoginRedirect(r.d.user);
     }).catch(function() {
       AUTH._setBtnLoading('btn-register','register-spinner',false);
       errEl.textContent = 'Erreur réseau. Vérifiez votre connexion.'; errEl.style.display='block';
@@ -1709,7 +1733,10 @@ var DASHBOARD = {
         return;
       }
       tbody.innerHTML = reports.map(function(r) {
-        var period = (r.period_from||'…') + ' → ' + (r.period_to||'…');
+        // Primary identifier: Q1 - 2026, fallback to period dates
+        var qLabel = r.quarter && r.year ? '<strong>' + r.quarter + ' - ' + r.year + '</strong>' : '';
+        var period = (r.period_from||'') + (r.period_to ? ' → ' + r.period_to : '');
+        var identifier = qLabel || ('<span style="color:var(--gray-500)">' + (period || '#' + r.id) + '</span>');
         var badge = r.status === 'submitted'
           ? '<span class="status-badge submitted">✓ Soumis</span>'
           : '<span class="status-badge draft">⏳ Brouillon</span>';
@@ -1718,14 +1745,15 @@ var DASHBOARD = {
         var actions = isDraft
           ? '<button class="btn-tbl edit" onclick="DASHBOARD.openReport(' + r.id + ')">Éditer</button> '
             + '<button class="btn-tbl del" onclick="DASHBOARD.deleteReport(' + r.id + ')">Supprimer</button>'
-          : '<button class="btn-tbl dup" onclick="DASHBOARD.duplicateReport(' + r.id + ')">Dupliquer</button>';
+          : '<button class="btn-tbl dup" onclick="DASHBOARD.duplicateReport(' + r.id + ')">Dupliquer</button> '
+            + '<a class="btn-tbl edit" href="/api/reports/' + r.id + '/download" style="text-decoration:none">⬇ Word</a>';
         return '<tr>'
-          + '<td style="font-weight:600;color:var(--green-700)">#' + r.id + (r.report_number?' (N°'+r.report_number+')':'') + '</td>'
-          + '<td style="font-size:12px">' + period + '</td>'
+          + '<td>' + identifier + '</td>'
+          + '<td style="font-size:12px;color:var(--gray-500)">' + (period || '—') + '</td>'
           + '<td>' + badge + '</td>'
           + '<td style="font-size:12px;color:var(--gray-500)">' + r.created_by_email + '</td>'
           + '<td style="font-size:12px;color:var(--gray-400)">' + updated + '</td>'
-          + '<td>' + actions + '</td>'
+          + '<td style="white-space:nowrap">' + actions + '</td>'
           + '</tr>';
       }).join('');
     }).catch(function() {
@@ -1736,17 +1764,57 @@ var DASHBOARD = {
   newReport: function() {
     var user = AUTH.getUser();
     if (!user || !user.project_code) { showToast('Aucun projet associé.'); return; }
+    // Show quarter/year picker inline
+    var year = new Date().getFullYear();
+    var qOpts = ['Q1','Q2','Q3','Q4'].map(function(q){ return '<option>'+q+'</option>'; }).join('');
+    var html = '<div style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--r-md);padding:16px;margin-bottom:16px">'
+      + '<div style="font-size:12px;font-weight:600;color:var(--gray-700);margin-bottom:10px">Identifier ce rapport</div>'
+      + '<div style="display:flex;gap:10px;align-items:center">'
+      + '<select id="nr-quarter" class="auth-select" style="margin:0;flex:1"><option value="">Trimestre</option>'+qOpts+'</select>'
+      + '<input id="nr-year" type="number" class="auth-input" style="margin:0;width:90px" value="'+year+'" min="2000" max="2099" placeholder="Année">'
+      + '</div></div>'
+      + '<div style="display:flex;gap:8px;justify-content:flex-end">'
+      + '<button class="btn-modal-cancel" onclick="DASHBOARD._closeNewReportModal()">Annuler</button>'
+      + '<button class="btn-dash-add" onclick="DASHBOARD._createNewReport()">Créer le rapport</button>'
+      + '</div>';
+    DASHBOARD._showModal('Nouveau rapport', html);
+  },
+
+  _showModal: function(title, bodyHtml) {
+    var el = document.getElementById('nr-modal');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'nr-modal';
+      el.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px';
+      el.innerHTML = '<div style="background:white;border-radius:var(--r-xl);padding:28px 32px;width:380px;max-width:100%;box-shadow:0 24px 80px rgba(0,0,0,.2)">'
+        + '<div style="font-family:var(--font-d);font-size:18px;color:var(--gray-900);margin-bottom:18px" id="nr-modal-title"></div>'
+        + '<div id="nr-modal-body"></div></div>';
+      document.body.appendChild(el);
+    }
+    document.getElementById('nr-modal-title').textContent = title;
+    document.getElementById('nr-modal-body').innerHTML = bodyHtml;
+    el.style.display = 'flex';
+  },
+
+  _closeNewReportModal: function() {
+    var el = document.getElementById('nr-modal');
+    if (el) el.style.display = 'none';
+  },
+
+  _createNewReport: function() {
+    var user = AUTH.getUser();
+    var quarter = (document.getElementById('nr-quarter')||{}).value || null;
+    var year = parseInt((document.getElementById('nr-year')||{}).value) || new Date().getFullYear();
+    DASHBOARD._closeNewReportModal();
     apiFetch('/api/reports', {
       method: 'POST',
-      body: JSON.stringify({ project_code: user.project_code, data: {} })
+      body: JSON.stringify({ quarter: quarter, year: year, data: {} })
     }).then(function(res){ return res && res.json(); }).then(function(d) {
       if (!d || !d.report) { showToast('Erreur création rapport.'); return; }
       DASHBOARD._currentReport = d.report.id;
       DASHBOARD.close();
-      // Pre-fill the project code in the lookup and open it
-      var ci = document.getElementById('code-input');
-      if (ci) { ci.value = user.project_code; lookupProject(); }
-      showToast('Nouveau rapport créé (brouillon).');
+      openProjectDirect(user.project_code);
+      showToast('Rapport ' + (quarter ? quarter + ' - ' + year : '') + ' créé (brouillon).');
     }).catch(function(){ showToast('Erreur réseau.'); });
   },
 
@@ -2784,8 +2852,16 @@ function saveDraft(){
   saveDraftsStore(drafts);
   // Also sync to server-side report
   var rptId = DASHBOARD._currentReport;
+  // Infer quarter from period_from date if not already set
+  var inferredQ = null, inferredY = null;
+  if (from) {
+    var m = parseInt(from.split('-')[1]);
+    if (!isNaN(m)) { inferredQ = m<=3?'Q1':m<=6?'Q2':m<=9?'Q3':'Q4'; }
+    inferredY = parseInt(from.split('-')[0]) || null;
+  }
   var syncData = {
     period_from: from, period_to: to, report_number: rptno,
+    quarter: inferredQ, year: inferredY,
     data: collectFormData()
   };
   if (rptId) {
