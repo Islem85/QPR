@@ -454,9 +454,13 @@ body{font-family:var(--font-b);font-size:14px;color:var(--gray-700);background:v
     <div class="pw-hint" id="pw-hint"></div>
     <label class="auth-label" for="reg-confirm">Confirmer le mot de passe</label>
     <input class="auth-input" type="password" id="reg-confirm" autocomplete="new-password" placeholder="••••••••">
+    <label class="auth-label" for="reg-country">Pays du projet</label>
+    <select class="auth-select" id="reg-country" onchange="onRegCountryChange()">
+      <option value="">— Sélectionnez un pays —</option>
+    </select>
     <label class="auth-label" for="reg-project">Projet associé</label>
-    <select class="auth-select" id="reg-project" onchange="onRegProjectChange()">
-      <option value="">— Chargement des projets… —</option>
+    <select class="auth-select" id="reg-project" onchange="onRegProjectChange()" disabled style="opacity:.5;cursor:not-allowed">
+      <option value="">— Choisissez d'abord un pays —</option>
     </select>
     <div class="proj-preview-auth" id="proj-preview-auth"></div>
     <button class="btn-auth" onclick="AUTH.register()" id="btn-register">
@@ -1352,6 +1356,29 @@ function openProjectDirect(projectCode) {
   openForm();
 }
 
+function onRegCountryChange() {
+  var country = (document.getElementById('reg-country') || {}).value || '';
+  var projSel = document.getElementById('reg-project');
+  var preview = document.getElementById('proj-preview-auth');
+  if (!projSel) return;
+  if (preview) preview.style.display = 'none';
+  if (!country) {
+    projSel.innerHTML = '<option value="">— Choisissez d\'abord un pays —</option>';
+    projSel.disabled = true;
+    projSel.style.opacity = '.5';
+    return;
+  }
+  var filtered = DASHBOARD._projects.filter(function(p){ return p.country === country; });
+  projSel.innerHTML = '<option value="">— Sélectionnez un projet —</option>'
+    + filtered.map(function(p){
+      return '<option value="' + p.code + '" data-name="' + p.name + '" data-country="' + p.country + '">'
+        + p.code + ' · ' + p.name.substring(0,50) + (p.name.length > 50 ? '…' : '') + '</option>';
+    }).join('');
+  projSel.disabled = false;
+  projSel.style.opacity = '1';
+  projSel.style.cursor = 'pointer';
+}
+
 function onRegProjectChange() {
   var sel = document.getElementById('reg-project');
   var preview = document.getElementById('proj-preview-auth');
@@ -1509,6 +1536,8 @@ var AUTH = {
     if (sf) sf.style.display = 'none';
     var ci = document.getElementById('code-input');
     if (ci) ci.value = '';
+    var rc = document.querySelector('.recent-codes');
+    if (rc) rc.style.display = '';
     closeUserDropdown('main');
     closeUserDropdown('dash');
   },
@@ -1524,6 +1553,9 @@ var AUTH = {
       if (submitBtn) { submitBtn.classList.remove('role-disabled'); submitBtn.title = ''; }
       if (submitLg) { submitLg.classList.remove('role-disabled'); submitLg.title = ''; }
     }
+    // Hide project-picker chips for authenticated users (account is locked to one project)
+    var rc = document.querySelector('.recent-codes');
+    if (rc) rc.style.display = 'none';
   },
 
   updateUserBadge: function(user) {
@@ -1622,7 +1654,12 @@ var DASHBOARD = {
 
   close: function() {
     document.getElementById('screen-dashboard').style.display = 'none';
-    document.getElementById('screen-lookup').style.display = 'flex';
+    var user = AUTH.getUser();
+    if (user && user.project_code && SAP_DB && SAP_DB[user.project_code]) {
+      openProjectDirect(user.project_code);
+    } else {
+      document.getElementById('screen-lookup').style.display = 'flex';
+    }
   },
 
   _updateDashBadge: function(user) {
@@ -1877,18 +1914,35 @@ var DASHBOARD = {
   },
 
   _loadProjectsDropdown: function() {
-    var sel = document.getElementById('reg-project');
-    if (!sel) return;
     if (this._projects.length) {
-      this._populateDropdown(sel);
+      this._populateCountries();
       return;
     }
     fetch('/api/projects').then(function(r){ return r.json(); }).then(function(d) {
       DASHBOARD._projects = d.projects || [];
-      DASHBOARD._populateDropdown(sel);
+      DASHBOARD._populateCountries();
     }).catch(function() {
-      sel.innerHTML = '<option value="">Erreur chargement projets</option>';
+      var cs = document.getElementById('reg-country');
+      if (cs) cs.innerHTML = '<option value="">Erreur chargement projets</option>';
     });
+  },
+
+  _populateCountries: function() {
+    var countrySel = document.getElementById('reg-country');
+    if (!countrySel) return;
+    var countries = [];
+    this._projects.forEach(function(p) {
+      if (p.country && countries.indexOf(p.country) === -1) countries.push(p.country);
+    });
+    countries.sort();
+    countrySel.innerHTML = '<option value="">— Sélectionnez un pays —</option>'
+      + countries.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
+    // Reset project dropdown
+    var projSel = document.getElementById('reg-project');
+    if (projSel) {
+      projSel.innerHTML = '<option value="">— Choisissez d\'abord un pays —</option>';
+      projSel.disabled = true; projSel.style.opacity = '.5'; projSel.style.cursor = 'not-allowed';
+    }
   },
 
   _populateDropdown: function(sel) {
@@ -2206,6 +2260,14 @@ function onCodeInput(v){document.getElementById('code-input').classList.remove('
 function fillCode(c){document.getElementById('code-input').value=c;onCodeInput(c);lookupProject();}
 function lookupProject(){
   var code=document.getElementById('code-input').value.trim().toUpperCase();if(!code)return;
+  var _lu=AUTH.getUser&&AUTH.getUser();
+  if(_lu&&_lu.project_code&&code!==_lu.project_code){
+    var _e=document.getElementById('error-msg');
+    _e.textContent='Accès refusé. Votre compte est associé au projet '+_lu.project_code+'.';
+    _e.style.display='block';
+    document.getElementById('code-input').classList.add('not-found');
+    return;
+  }
   var btn=document.getElementById('btn-lookup');btn.disabled=true;
   document.getElementById('btn-text').textContent=t('btn-loading');
   document.getElementById('spinner').style.display='block';
@@ -2244,6 +2306,11 @@ function openForm(){
 }
 function backToLookup(){
   document.getElementById('screen-form').style.display='none';
+  var user = AUTH.getUser && AUTH.getUser();
+  if (user) {
+    if (user.role === 'coordinateur') { DASHBOARD.open(); return; }
+    if (user.project_code && SAP_DB && SAP_DB[user.project_code]) { openProjectDirect(user.project_code); return; }
+  }
   document.getElementById('screen-lookup').style.display='flex';
   document.getElementById('code-input').value='';
   document.getElementById('code-input').classList.remove('found','not-found');
